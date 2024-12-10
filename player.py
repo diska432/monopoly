@@ -1,10 +1,10 @@
 class Player:
-    def __init__(self, name, color, balance=1500, boardIndex = 0, resign = False):
+    def __init__(self, name, color, balance=1500, playerIndex = 0, resign = False):
         self.name = name
         self.color = color
         self.balance = balance
         self.owned_companies = []
-        self.boardIndex = boardIndex
+        self.playerIndex = playerIndex
         self.resign = resign
 
     def buy_company(self, company):

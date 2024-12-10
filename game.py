@@ -62,8 +62,8 @@ class Game(EventObserver):
         dice_roll = 7
         print(f"{current_player.name} rolls {dice_roll}")
 
-        current_player.boardIndex += dice_roll
-        current_cell = self.board[current_player.boardIndex]
+        current_player.playerIndex += dice_roll
+        current_cell = self.board[current_player.playerIndex]
         print(f"{current_player.name} lands on {current_cell.name}!")
         
         if isinstance(current_cell, Company) and not current_cell.owned:
@@ -80,7 +80,7 @@ class Game(EventObserver):
 
         elif isinstance(current_cell, Shans):
             arr = current_cell.getArr()
-            index = randint(1, len(arr))
+            index = randint(1, len(arr) - 1)
             randomShans = arr[index]
             if randomShans.type_ == "earn":
                 print(f"{randomShans.text} {current_player.name} earns {randomShans.amount}")
@@ -93,8 +93,13 @@ class Game(EventObserver):
                 current_player.pay_tax(randomShans)
 
             elif randomShans.type_ == "move":
-                print("we hit move")
-
+                destination_cell = self.board[randomShans.destination]
+                print(f"{randomShans.text} {current_player.name} lands on {destination_cell.name}")
+                if current_player.playerIndex > randomShans.destination:
+                    print(f"{current_player.name} passes START and earns 200")
+                    current_player.balance += 200
+                current_player.playerIndex = randomShans.destination
+                
 
     def notify(self, event):
         print(f"Event: {event}")

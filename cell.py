@@ -1,10 +1,11 @@
 class Cell:
-    def __init__(self, name):
+    def __init__(self, name, boardIndex):
         self.name = name
+        self.boardIndex = boardIndex
 
 class Company(Cell):
-    def __init__(self, name, price, type_, owned = False): #type can be either company or video game(komunalka, vokzal)
-        super().__init__(name)
+    def __init__(self, name, boardIndex, price, type_, owned = False): #type can be either company or video game(komunalka, vokzal)
+        super().__init__(name, boardIndex)
         self.price = price
         self.type = type_
         self.owned = owned
@@ -17,8 +18,8 @@ class ShansCard:
         self.text = text
 
 class Shans(Cell):
-    def __init__(self):
-        super().__init__("Shans")
+    def __init__(self, boardIndex):
+        super().__init__("Shans", boardIndex)
         self.arr = [
             ShansCard("earn", 100, "",  "Holiday miracle!"),
             ShansCard("earn", 150, "", "Bank miscalculation!"),
@@ -40,34 +41,34 @@ class Shans(Cell):
             ShansCard("pay", 40, "", "Insurance!"),
             ShansCard("pay", 140, "", "Insurance!"),
             ShansCard("pay", 120, "", "Insurance!"),
-            ShansCard("move", "Chanel", "You take a casual stroll!"),
-            ShansCard("move", "Hugo Boss", "You take a casual stroll!"),
-            ShansCard("move", "Audi", "You take a casual stroll!"),
-            ShansCard("move", "Adidas", "You take a casual stroll!"),
-            ShansCard("move", "Puma", "You take a casual stroll!"),
-            ShansCard("move", "Lacoste", "You take a casual stroll!"),
-            ShansCard("move", "Skype", "You take a casual stroll!"),
-            ShansCard("move", "Rockstar", "You take a casual stroll!"),
-            ShansCard("move", "Facebook", "You take a casual stroll!"),
-            ShansCard("move", "Twitter", "You take a casual stroll!"),
-            ShansCard("move", "Mercedes", "You take a casual stroll!"),
-            ShansCard("move", "Coca-Cola", "You take a casual stroll!"),
-            ShansCard("move", "Pepsi", "You take a casual stroll!"),
-            ShansCard("move", "Fanta", "You take a casual stroll!"),
-            ShansCard("move", "Air Astana", "You take a casual stroll!"),
-            ShansCard("move", "Fly Arystan", "You take a casual stroll!"),
-            ShansCard("move", "Scat", "You take a casual stroll!"),
-            ShansCard("move", "Ford", "You take a casual stroll!"),
-            ShansCard("move", "Im Cafe", "You take a casual stroll!"),
-            ShansCard("move", "Burger King", "You take a casual stroll!"),
-            ShansCard("move", "Valve", "You take a casual stroll!"),
-            ShansCard("move", "KFC", "You take a casual stroll!"),
-            ShansCard("move", "Radisson", "You take a casual stroll!"),
-            ShansCard("move", "Novotel", "You take a casual stroll!"),
-            ShansCard("move", "Hilton", "You take a casual stroll!"),
-            ShansCard("move", "Toyota", "You take a casual stroll!"),
-            ShansCard("move", "Samsung", "You take a casual stroll!"),
-            ShansCard("move", "Apple", "You take a casual stroll!"),
+            ShansCard("move", 0, 1, "You take a casual stroll."),
+            ShansCard("move", 0, 3, "You take a casual stroll."),
+            ShansCard("move", 0, 5, "You take a casual stroll."),
+            ShansCard("move", 0, 6, "You take a casual stroll."),
+            ShansCard("move", 0, 8, "You take a casual stroll."),
+            ShansCard("move", 0, 9, "You take a casual stroll."),
+            ShansCard("move", 0, 11, "You take a casual stroll."),
+            ShansCard("move", 0, 12, "You take a casual stroll."),
+            ShansCard("move", 0, 13, "You take a casual stroll."),
+            ShansCard("move", 0, 14, "You take a casual stroll."),
+            ShansCard("move", 0, 15, "You take a casual stroll."),
+            ShansCard("move", 0, 16, "You take a casual stroll."),
+            ShansCard("move", 0, 18, "You take a casual stroll."),
+            ShansCard("move", 0, 19, "You take a casual stroll."),
+            ShansCard("move", 0, 21, "You take a casual stroll."),
+            ShansCard("move", 0, 23, "You take a casual stroll."),
+            ShansCard("move", 0, 24, "You take a casual stroll."),
+            ShansCard("move", 0, 25, "You take a casual stroll."),
+            ShansCard("move", 0, 26, "You take a casual stroll."),
+            ShansCard("move", 0, 27, "You take a casual stroll."),
+            ShansCard("move", 0, 28, "You take a casual stroll."),
+            ShansCard("move", 0, 29, "You take a casual stroll."),
+            ShansCard("move", 0, 31, "You take a casual stroll."),
+            ShansCard("move", 0, 32, "You take a casual stroll."),
+            ShansCard("move", 0, 34, "You take a casual stroll."),
+            ShansCard("move", 0, 35, "You take a casual stroll."),
+            ShansCard("move", 0, 37, "You take a casual stroll."),
+            ShansCard("move", 0, 39, "You take a casual stroll."),
         ]
 
     def getArr(self) :
@@ -75,21 +76,12 @@ class Shans(Cell):
 
 
 class Tax(Cell):
-    def __init__(self, amount):
-        super().__init__("Tax")
+    def __init__(self, boardIndex, amount):
+        super().__init__("Tax", boardIndex)
         self.amount = amount
 
 class RandomCell(Cell):
-    def __init__(self, name, type_):
-        super().__init__(name)
+    def __init__(self, name, boardIndex, type_):
+        super().__init__(name, boardIndex)
         self.type = type_
 
-# class CellFactory:
-#     @staticmethod
-#     def create_cell(cell_type):
-#         if cell_type % 5 == 0:  # For demo purposes
-#             return Company(f"Company-{cell_type}", 200 + cell_type * 10, "Blue")
-#         elif cell_type % 7 == 0:
-#             return Tax(100)
-#         else:
-#             return Shans()
