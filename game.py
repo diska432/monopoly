@@ -3,46 +3,31 @@ from player import Player
 from board import Board
 from random import randint
 from cell import Cell, Company, Shans, ShansCard, Tax, RandomCell
-
-class GameState:
-    """Abstract class for Game states."""
-    def handle(self, game):
-        pass
-
-class LobbyState(GameState):
-    def handle(self, game):
-        print("Game is in the lobby. Waiting for players to join.")
-
-class ActiveGameState(GameState):
-    def handle(self, game):
-        print("Game is active. Players are taking turns.")
-
-class GameOverState(GameState):
-    def handle(self, game):
-        print("Game over. Calculating results...")
+from input_handler import InputHandler
 
 class Game(EventObserver):
     def __init__(self, lobby_id):
         self.lobby_id = lobby_id
         self.players = []
-        newBoard = Board()
-        self.board = Board.getBoard(newBoard)
-        self.state = LobbyState()
+        self.colors = ["Red", "Green", "Blue", "Black", "Yellow", "Purple", "Yellow"]
+        new_board = Board()
+        self.board = Board.getBoard(new_board)
+        self.state = "lobby"
         self.current_player_index = 0
 
     def add_player(self, player):
-        if isinstance(self.state, LobbyState):
+        if self.state == "lobby":
             self.players.append(player)
             print(f"{player.name} joined the game.")
         else:
-            print("Cannot join. Game has already started.")
+            print("You can only add players when setting up a game in the lobby.\n")
+            return
 
     def start_game(self):
         if len(self.players) < 2:
             print("Need at least 2 players to start.")
             return
-
-        self.state = ActiveGameState()
+        self.state = "active"
         print("Game started!")
 
 
@@ -51,9 +36,7 @@ class Game(EventObserver):
 
     def play_turn(self):
         current_player = self.players[self.current_player_index]
-        move = input(f"{current_player.name}, it is your turn! \n")
-        if move == "p":
-            self.make_move(current_player)     
+        self.make_move(current_player)     
         self.current_player_index = (self.current_player_index + 1) % len(self.players)
            
             
@@ -62,11 +45,11 @@ class Game(EventObserver):
         dice_roll = 7
         print(f"{current_player.name} rolls {dice_roll}")
 
-        current_player.playerIndex += dice_roll
-        current_cell = self.board[current_player.playerIndex]
+        current_player.player_index += dice_roll
+        current_cell = self.board[current_player.player_index]
         print(f"{current_player.name} lands on {current_cell.name}!")
         
-        if isinstance(current_cell, Company) and not current_cell.owned:
+        if isinstance(current_cell, Company) and current_cell.owner is None:
             buy = input(f"Do you want to buy {current_cell.name}? Type y for yes\n")
             if buy == "y":
                 current_player.buy_company(current_cell)
@@ -95,11 +78,15 @@ class Game(EventObserver):
             elif randomShans.type_ == "move":
                 destination_cell = self.board[randomShans.destination]
                 print(f"{randomShans.text} {current_player.name} lands on {destination_cell.name}")
-                if current_player.playerIndex > randomShans.destination:
+                if current_player.player_index > randomShans.destination:
                     print(f"{current_player.name} passes START and earns 200")
                     current_player.balance += 200
-                current_player.playerIndex = randomShans.destination
-                
+                current_player.player_index = randomShans.destination
+    
+    def play(self):
+        handler = InputHandler()
+        while True:
+            res =  handler.handleInput(self)
 
     def notify(self, event):
         print(f"Event: {event}")

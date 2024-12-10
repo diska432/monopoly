@@ -1,14 +1,14 @@
 class Cell:
-    def __init__(self, name, boardIndex):
+    def __init__(self, name, board_index):
         self.name = name
-        self.boardIndex = boardIndex
+        self.board_index = board_index
 
 class Company(Cell):
-    def __init__(self, name, boardIndex, price, type_, owned = False): #type can be either company or video game(komunalka, vokzal)
-        super().__init__(name, boardIndex)
+    def __init__(self, name, board_index, price, type_): #type can be either company or video game(komunalka, vokzal)
+        super().__init__(name, board_index)
         self.price = price
         self.type = type_
-        self.owned = owned
+        self.owner = None
 
 class ShansCard:
     def __init__(self, type_, amount = 0, destination = "", text = ""):
@@ -18,8 +18,8 @@ class ShansCard:
         self.text = text
 
 class Shans(Cell):
-    def __init__(self, boardIndex):
-        super().__init__("Shans", boardIndex)
+    def __init__(self, board_index):
+        super().__init__("Shans", board_index)
         self.arr = [
             ShansCard("earn", 100, "",  "Holiday miracle!"),
             ShansCard("earn", 150, "", "Bank miscalculation!"),
@@ -76,12 +76,12 @@ class Shans(Cell):
 
 
 class Tax(Cell):
-    def __init__(self, boardIndex, amount):
-        super().__init__("Tax", boardIndex)
+    def __init__(self, board_index, amount):
+        super().__init__("Tax", board_index)
         self.amount = amount
 
 class RandomCell(Cell):
-    def __init__(self, name, boardIndex, type_):
-        super().__init__(name, boardIndex)
+    def __init__(self, name, board_index, type_):
+        super().__init__(name, board_index)
         self.type = type_
 
