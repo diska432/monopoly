@@ -2,7 +2,7 @@ from observer import EventObserver
 from player import Player
 from board import Board
 from random import randint
-from cell import Cell, Company, Shans, Tax, RandomCell
+from cell import Cell, Company, Shans, ShansCard, Tax, RandomCell
 
 class GameState:
     """Abstract class for Game states."""
@@ -42,7 +42,6 @@ class Game(EventObserver):
             print("Need at least 2 players to start.")
             return
 
-        
         self.state = ActiveGameState()
         print("Game started!")
 
@@ -54,12 +53,13 @@ class Game(EventObserver):
         current_player = self.players[self.current_player_index]
         move = input(f"{current_player.name}, it is your turn! \n")
         if move == "p":
-            make_move(current_player, current_cell)     
+            self.make_move(current_player)     
         self.current_player_index = (self.current_player_index + 1) % len(self.players)
            
             
-    def make_move(self, current_player, current_cell):
-        dice_roll = self.roll_dice() + self.roll_dice()
+    def make_move(self, current_player):
+        # dice_roll = self.roll_dice() + self.roll_dice()
+        dice_roll = 7
         print(f"{current_player.name} rolls {dice_roll}")
 
         current_player.boardIndex += dice_roll
@@ -79,23 +79,21 @@ class Game(EventObserver):
             current_player.pay_tax(current_cell)
 
         elif isinstance(current_cell, Shans):
-            arr = Shans.getArr()
+            arr = current_cell.getArr()
             index = randint(1, len(arr))
             randomShans = arr[index]
-            if randomShans.type == "earn":
-                print(f"{randomShans.text} {current_player} earns {randomShans.amount}")
+            if randomShans.type_ == "earn":
+                print(f"{randomShans.text} {current_player.name} earns {randomShans.amount}")
                 current_player.balance += randomShans.amount
 
-            elif randomShans.type == "pay":
-                pay = input(f"{randomShans.text} {current_player} has to pay {randomShans.amount}. Type y for yes\n")
+            elif randomShans.type_ == "pay":
+                pay = input(f"{randomShans.text} {current_player.name} has to pay {randomShans.amount}. Type y for yes\n")
                 while not pay == "y":
-                    pay = input(f"{randomShans.text} {current_player} has to pay {randomShans.amount}. Type y for yes\n")
+                    pay = input(f"{randomShans.text} {current_player.name} has to pay {randomShans.amount}. Type y for yes\n")
                 current_player.pay_tax(randomShans)
 
-            elif randomShans.type == "move":
-
-
-
+            elif randomShans.type_ == "move":
+                print("we hit move")
 
 
     def notify(self, event):

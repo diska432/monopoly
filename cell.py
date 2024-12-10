@@ -9,63 +9,70 @@ class Company(Cell):
         self.type = type_
         self.owned = owned
 
+class ShansCard:
+    def __init__(self, type_, amount = 0, destination = "", text = ""):
+        self.type_ = type_
+        self.amount = amount
+        self.destination = destination
+        self.text = text
+
 class Shans(Cell):
     def __init__(self):
         super().__init__("Shans")
         self.arr = [
-            {type_: "earn", amount: 100, text: "Holiday miracle!"},
-            {type_: "earn", amount: 150, text: "Bank miscalculation!"},
-            {type_: "earn", amount: 200, text: "You won the lottery!"},
-            {type_: "earn", amount: 50, text: "Donation!"},
-            {type_: "earn", amount: 25, text: "Donation!"},
-            {type_: "earn", amount: 20, text: "Donation!"},
-            {type_: "earn", amount: 10, text: "Donation!"},
-            {type_: "earn", amount: 100, text: "Donation!"},
-            {type_: "earn", amount: 120, text: "Donation!"},
-            {type_: "earn", amount: 40, text: "Donation!"},
-            {type_: "pay", amount: 150, text: "You need to pay tuition!"},
-            {type_: "pay", amount: 200, text: "You need to pay mortgage!"},
-            {type_: "pay", amount: 100, text: "You need to pay more taxes!"},
-            {type_: "pay", amount: 120, text: "You need to pay for insurance!"},
-            {type_: "pay", amount: 100, text: "You need to pay for insurance!"},
-            {type_: "pay", amount: 25, text: "You need to pay for insurance!"},
-            {type_: "pay", amount: 10, text: "You need to pay for insurance!"},
-            {type_: "pay", amount: 50, text: "You need to pay for insurance!"},
-            {type_: "pay", amount: 40, text: "You need to pay for insurance!"},
-            {type_: "pay", amount: 20, text: "You need to pay for insurance!"},
-            {type_: "pay", amount: 140, text: "You need to pay for insurance!"},
-            {type_: "move", destination: "Chanel", text: "You take a casual stroll"},
-            {type_: "move", destination: "Hugo Boss", text: "You take a casual stroll"},
-            {type_: "move", destination: "Audi", text: "You take a casual stroll"},
-            {type_: "move", destination: "Adidas", text: "You take a casual stroll"},
-            {type_: "move", destination: "Puma", text: "You take a casual stroll"},
-            {type_: "move", destination: "Lacoste", text: "You take a casual stroll"},
-            {type_: "move", destination: "Skype", text: "You take a casual stroll"},
-            {type_: "move", destination: "Rockstar", text: "You take a casual stroll"},
-            {type_: "move", destination: "Facebook", text: "You take a casual stroll"},
-            {type_: "move", destination: "Twitter", text: "You take a casual stroll"},
-            {type_: "move", destination: "Mercedes", text: "You take a casual stroll"},
-            {type_: "move", destination: "Coca-Cola", text: "You take a casual stroll"},
-            {type_: "move", destination: "Pepsi", text: "You take a casual stroll"},
-            {type_: "move", destination: "Fanta", text: "You take a casual stroll"},
-            {type_: "move", destination: "Air Astana", text: "You take a casual stroll"},
-            {type_: "move", destination: "Fly Arystan", text: "You take a casual stroll"},
-            {type_: "move", destination: "Scat", text: "You take a casual stroll"},
-            {type_: "move", destination: "Ford", text: "You take a casual stroll"},
-            {type_: "move", destination: "Im Cafe", text: "You take a casual stroll"},
-            {type_: "move", destination: "Burger King", text: "You take a casual stroll"},
-            {type_: "move", destination: "Valve", text: "You take a casual stroll"},
-            {type_: "move", destination: "KFC", text: "You take a casual stroll"},
-            {type_: "move", destination: "Radisson", text: "You take a casual stroll"},
-            {type_: "move", destination: "Novotel", text: "You take a casual stroll"},
-            {type_: "move", destination: "Hilton", text: "You take a casual stroll"},
-            {type_: "move", destination: "Toyota", text: "You take a casual stroll"},
-            {type_: "move", destination: "Samsung", text: "You take a casual stroll"},
-            {type_: "move", destination: "Apple", text: "You take a casual stroll"},
+            ShansCard("earn", 100, "",  "Holiday miracle!"),
+            ShansCard("earn", 150, "", "Bank miscalculation!"),
+            ShansCard("earn", 100, "", "You won the lottery!"),
+            ShansCard("earn", 50, "", "Donation!"),
+            ShansCard("earn", 25, "", "Donation!"),
+            ShansCard("earn", 20, "", "Donation!"),
+            ShansCard("earn", 10, "", "Donation!"),
+            ShansCard("earn", 100,"", "Donation!"),
+            ShansCard("earn", 120, "", "Donation!"),
+            ShansCard("earn", 40, "", "Donation!"),
+            ShansCard("pay", 150, "", "Tuition fees!"),
+            ShansCard("pay", 200, "", "Mortgage!"),
+            ShansCard("pay", 100, "", "Taxes!"),
+            ShansCard("pay", 100, "", "Insurance!"),
+            ShansCard("pay", 25, "", "Insurance!"),
+            ShansCard("pay", 10, "", "Insurance!"),
+            ShansCard("pay", 50, "", "Insurance!"),
+            ShansCard("pay", 40, "", "Insurance!"),
+            ShansCard("pay", 140, "", "Insurance!"),
+            ShansCard("pay", 120, "", "Insurance!"),
+            ShansCard("move", "Chanel", "You take a casual stroll!"),
+            ShansCard("move", "Hugo Boss", "You take a casual stroll!"),
+            ShansCard("move", "Audi", "You take a casual stroll!"),
+            ShansCard("move", "Adidas", "You take a casual stroll!"),
+            ShansCard("move", "Puma", "You take a casual stroll!"),
+            ShansCard("move", "Lacoste", "You take a casual stroll!"),
+            ShansCard("move", "Skype", "You take a casual stroll!"),
+            ShansCard("move", "Rockstar", "You take a casual stroll!"),
+            ShansCard("move", "Facebook", "You take a casual stroll!"),
+            ShansCard("move", "Twitter", "You take a casual stroll!"),
+            ShansCard("move", "Mercedes", "You take a casual stroll!"),
+            ShansCard("move", "Coca-Cola", "You take a casual stroll!"),
+            ShansCard("move", "Pepsi", "You take a casual stroll!"),
+            ShansCard("move", "Fanta", "You take a casual stroll!"),
+            ShansCard("move", "Air Astana", "You take a casual stroll!"),
+            ShansCard("move", "Fly Arystan", "You take a casual stroll!"),
+            ShansCard("move", "Scat", "You take a casual stroll!"),
+            ShansCard("move", "Ford", "You take a casual stroll!"),
+            ShansCard("move", "Im Cafe", "You take a casual stroll!"),
+            ShansCard("move", "Burger King", "You take a casual stroll!"),
+            ShansCard("move", "Valve", "You take a casual stroll!"),
+            ShansCard("move", "KFC", "You take a casual stroll!"),
+            ShansCard("move", "Radisson", "You take a casual stroll!"),
+            ShansCard("move", "Novotel", "You take a casual stroll!"),
+            ShansCard("move", "Hilton", "You take a casual stroll!"),
+            ShansCard("move", "Toyota", "You take a casual stroll!"),
+            ShansCard("move", "Samsung", "You take a casual stroll!"),
+            ShansCard("move", "Apple", "You take a casual stroll!"),
         ]
 
-    def getArr() :
+    def getArr(self) :
         return self.arr
+
 
 class Tax(Cell):
     def __init__(self, amount):
