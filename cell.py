@@ -4,11 +4,13 @@ class Cell:
         self.board_index = board_index
 
 class Company(Cell):
-    def __init__(self, name, board_index, price, type_): #type can be either company or video game(komunalka, vokzal)
+    def __init__(self, name, board_index, price, type_, rent, fee = 0): #type can be either company or video game(komunalka, vokzal)
         super().__init__(name, board_index)
         self.price = price
         self.type = type_
         self.owner = None
+        self.rent = rent
+        self.fee = fee
 
 class ShansCard:
     def __init__(self, type_, amount = 0, destination = "", text = ""):

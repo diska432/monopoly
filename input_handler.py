@@ -8,7 +8,7 @@ class InputHandler:
         if len(game.players) > 0 and game.state == "active" :
             current_player = game.players[game.current_player_index]
             print(f"{current_player.name}, it is your turn! ")
-        op1 = input("Type s for start, r for resign, m for move, a to add player, l to create new lobby: ")
+        op1 = input("Type s for start, r for resign, m for move, a to add player, l to create new lobby, d to display current player: ")
         if op1 == "s":
             if game.state == "active":
                 print("You are already in a game. Please finish the current game before starting a new one.\n")
@@ -55,8 +55,16 @@ class InputHandler:
             if len(game.players) == 0:
                 print("No players in the game. Current player cannot resign.\n")
                 return
-            current_player = self.players[self.current_player_index]
+            current_player = game.players[game.current_player_index]
             current_player.resign(game)
+        elif op1 == "d":
+            if game.state == "gameover" or game.state == "lobby":
+                print("The game has not started. Please start the game first.\n")
+                return
+            current_player = game.players[game.current_player_index]
+            print(f"Name: {current_player.name}")
+            print(f"Color: {current_player.color}")
+            print(f"Balance: {current_player.balance}")
         else:
             print("Please enter a valid command\n")
             return

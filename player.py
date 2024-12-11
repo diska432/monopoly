@@ -5,7 +5,7 @@ class Player:
         self.name = name
         self.color = color
         self.balance = balance
-        self.owned_companies = []
+        self.owned_companies = []   
         self.player_index = player_index
 
     def buy_company(self, company):
@@ -16,8 +16,24 @@ class Player:
             print(f"{self.name} bought {company.name} for {company.price}")
         else:
             print(f"{self.name} does not have enough balance to buy {company.name}")
+
+    def landed_on_company(self, company):
+        if company.owner is None:
+            buy = input(f"Do you want to buy {company.name}? Type y for yes\n")
+            if buy == "y":
+                self.buy_company(company)
+            #auction to be implemented in the future
+        else:
+            rent = input(f"You need to pay rent in the amount of {company.rent}! Type y for yes\n")
+            while not rent == "y":
+                rent = input(f"You need to pay rent in the amount of {company.rent}! Type y for yes\n")
+            company.owner.balance += company.rent
+            self.balance -= company.rent
     
     def pay_tax(self, tax):
+        pay = input(f"You need to pay {tax.amount}! Type y for yes\n")
+        while not pay == "y":
+            pay = input(f"You need to pay {tax.amount}! Type y for yes\n")
         if self.balance >= tax.amount:
             self.balance -= tax.amount
             print(f"{self.name} paid {tax.amount}")
