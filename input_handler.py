@@ -7,7 +7,7 @@ class InputHandler:
     def handleInput(self, game):
         if len(game.players) > 0 and game.state == "active" :
             current_player = game.players[game.current_player_index]
-            print(f"{current_player.name}, it is your turn! \n")
+            print(f"{current_player.name}, it is your turn! ")
         op1 = input("Type s for start, r for resign, m for move, a to add player, l to create new lobby: ")
         if op1 == "s":
             if game.state == "active":
@@ -23,10 +23,15 @@ class InputHandler:
             if game.state == "active" or game.state == "game over":
                 print("You can only add players when setting up a game in the lobby.\n")
                 return
-            else:
-                player_name = input("Please enter your name: ")
-                new_player = Player(player_name, game.colors[len(game.players)], 1500, 0)
-                game.add_player(new_player)
+
+            player_name = input("Please enter your nickname: ")
+            for p in game.players:
+                if p.name == player_name:
+                    print("This name is already taken. Please enter a different name.\n")
+                    return
+
+            new_player = Player(player_name, game.colors[len(game.players)], 1500, 0)
+            game.add_player(new_player)
         
         elif op1 == "l":
             if game.state == "active":
@@ -52,4 +57,7 @@ class InputHandler:
                 return
             current_player = self.players[self.current_player_index]
             current_player.resign(game)
+        else:
+            print("Please enter a valid command\n")
+            return
         

@@ -1,6 +1,8 @@
 from lobby_manager import LobbyManager
 from player import Player
 
+#need to change this logic in the future to a player creating lobbies (will possibly have to change game class or lobby_manager)
+
 lobby_manager = LobbyManager()
 game = lobby_manager.create_lobby("Lobby1")
 game.play()
