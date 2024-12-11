@@ -42,7 +42,7 @@ class Game(EventObserver):
             
     def make_move(self, current_player):
         # dice_roll = self.roll_dice() + self.roll_dice()
-        dice_roll = 5
+        dice_roll = 7
         print(f"{current_player.name} rolls {dice_roll}")
 
         current_player.player_index += dice_roll
@@ -56,24 +56,7 @@ class Game(EventObserver):
             current_player.pay_tax(current_cell)
 
         elif isinstance(current_cell, Shans):
-            arr = current_cell.getArr()
-            index = randint(1, len(arr) - 1)
-            randomShans = arr[index]
-            if randomShans.type_ == "earn":
-                print(f"{randomShans.text} {current_player.name} earns {randomShans.amount}")
-                current_player.balance += randomShans.amount
-
-            elif randomShans.type_ == "pay":
-                current_player.pay_tax(randomShans)
-
-            elif randomShans.type_ == "move":
-                destination_cell = self.board[randomShans.destination]
-                print(f"{randomShans.text} {current_player.name} lands on {destination_cell.name}")
-                if current_player.player_index > randomShans.destination:
-                    print(f"{current_player.name} passes START and earns 200")
-                    current_player.balance += 200
-                current_player.player_index = randomShans.destination
-                current_player.landed_on_company(destination_cell)
+            current_player.landed_on_shans(current_cell, self)
     
     def play(self):
         handler = InputHandler()

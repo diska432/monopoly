@@ -1,4 +1,5 @@
 import game
+from random import randint
 
 class Player:
     def __init__(self, name, color, balance=1500, player_index = 0):
@@ -40,6 +41,26 @@ class Player:
         # else:
             #need to add logic for players to choose if they want to resign or sell company
             # self.resign()
+
+    def landed_on_shans(self,current_cell, game):
+        arr = current_cell.getArr()
+        index = randint(1, len(arr) - 1)
+        randomShans = arr[index]
+        if randomShans.type_ == "earn":
+            print(f"{randomShans.text} {self.name} earns {randomShans.amount}")
+            self.balance += randomShans.amount
+
+        elif randomShans.type_ == "pay":
+            self.pay_tax(randomShans)
+
+        elif randomShans.type_ == "move":
+            destination_cell = game.board[randomShans.destination]
+            print(f"{randomShans.text} {self.name} lands on {destination_cell.name}")
+            if self.player_index > randomShans.destination:
+                print(f"{self.name} passes START and earns 200")
+                self.balance += 200
+            self.player_index = randomShans.destination
+            self.landed_on_company(destination_cell)
     
     def resign(self, game):
         print(f"{self.name} resigns!\n")
