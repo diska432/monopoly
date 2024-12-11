@@ -42,10 +42,15 @@ class Game(EventObserver):
             
     def make_move(self, current_player):
         # dice_roll = self.roll_dice() + self.roll_dice()
-        dice_roll = 7
+        dice_roll = 20
         print(f"{current_player.name} rolls {dice_roll}")
 
-        current_player.player_index += dice_roll
+        destination = current_player.player_index + dice_roll
+        if destination >= 40:
+            print(f"{current_player.name} passes START and earns 200 tenge")
+            destination %= 40
+
+        current_player.player_index = destination
         current_cell = self.board[current_player.player_index]
         print(f"{current_player.name} lands on {current_cell.name}!")
         
@@ -57,6 +62,9 @@ class Game(EventObserver):
 
         elif isinstance(current_cell, Shans):
             current_player.landed_on_shans(current_cell, self)
+
+        elif isinstance(current_cell, RandomCell):
+            current_player.landed_on_random_cell(current_cell)
     
     def play(self):
         handler = InputHandler()

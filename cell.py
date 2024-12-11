@@ -86,4 +86,3 @@ class RandomCell(Cell):
     def __init__(self, name, board_index, type_):
         super().__init__(name, board_index)
         self.type = type_
-
