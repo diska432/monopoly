@@ -37,13 +37,47 @@ class Game(EventObserver):
     def play_turn(self):
         current_player = self.players[self.current_player_index]
         self.make_move(current_player)     
-        self.current_player_index = (self.current_player_index + 1) % len(self.players)
+        if current_player.doubles_rolled > 0 and current_player.in_jail_count > 0:
+            current_player.in_jail_count = 0
+            self.current_player_index = (self.current_player_index + 1) % len(self.players)
+        if not current_player.doubles_rolled > 0:
+            self.current_player_index = (self.current_player_index + 1) % len(self.players)
            
             
     def make_move(self, current_player):
-        # dice_roll = self.roll_dice() + self.roll_dice()
-        dice_roll = 20
+        # dice_roll1 = self.roll_dice()
+        dice_roll1 = 5
+        # dice_roll2 = self.roll_dice()
+        dice_roll2 = 5
+        if current_player.in_jail_count > 0:
+            wish = input(f"{current_player.name}, do you want to pay 50 tenge to get out of jail? Type y for yes ")
+            if wish == "y":
+                current_player.balance -= 50
+                current_player.in_jail_count = 0
+            else:
+                if dice_roll1 == dice_roll2:
+                    print(f"{current_player.name} rolls a double and gets out of jail")
+                else:
+                    if current_player.in_jail_count == 1:
+                        fee = input("You need to pay 50 tenge to get out of jail. Type y for yes ")
+                        while not fee == "y" :
+                            fee = input("You need to pay 50 tenge to get out of jail. Type y for yes ")
+                        current_player.balance -= 50
+                    current_player.in_jail_count -= 1
+        
+        # dice_roll = 4
+        dice_roll = dice_roll1 + dice_roll2
         print(f"{current_player.name} rolls {dice_roll}")
+        if dice_roll1 == dice_roll2:
+            print(f"{current_player.name} rolls a double")
+            current_player.doubles_rolled += 1
+            if current_player.doubles_rolled == 3:
+                print(f"{current_player.name} goes to jail for rolling 3 doubles in a row")
+                current_player.go_to_jail()
+                current_player.doubles_rolled = 0
+                return
+        else:
+            current_player.doubles_rolled = 0
 
         destination = current_player.player_index + dice_roll
         if destination >= 40:
@@ -65,6 +99,9 @@ class Game(EventObserver):
 
         elif isinstance(current_cell, RandomCell):
             current_player.landed_on_random_cell(current_cell)
+        
+        # if current_player.doubles_rolled > 0:
+        #     self.make_move(current_player)
     
     def play(self):
         handler = InputHandler()

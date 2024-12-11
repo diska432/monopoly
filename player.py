@@ -10,6 +10,7 @@ class Player:
         self.owned_companies = []   
         self.player_index = player_index
         self.in_jail_count = 0
+        self.doubles_rolled = 0
 
     def buy_company(self, company):
         if self.balance >= company.price:
@@ -72,8 +73,7 @@ class Player:
             self.balance += 100
             player_index = 0
         elif current_cell.type == "prison":
-            self.in_jail_count = 3
-            self.player_index = 10
+            self.go_to_jail()
         elif current_cell.type == "casino":
             casino = input(f"{self.name} lands on casino! To play you have to pay 100 tenge. Do you wish to play? Type y for yes ")
             if casino == "y":
@@ -89,6 +89,11 @@ class Player:
                     self.balance += 600
                 else:
                     print("Unlucky, next time you will win for sure!")
+
+    def go_to_jail(self):
+        self.in_jail_count = 3
+        self.player_index = 10
+
     
     def resign(self, game):
         print(f"{self.name} resigns!\n")
