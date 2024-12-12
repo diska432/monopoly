@@ -48,7 +48,7 @@ class Game(EventObserver):
         # dice_roll1 = self.roll_dice()
         dice_roll1 = 5
         # dice_roll2 = self.roll_dice()
-        dice_roll2 = 5
+        dice_roll2 = 2
         if current_player.in_jail_count > 0:
             wish = input(f"{current_player.name}, do you want to pay 50 tenge to get out of jail? Type y for yes ")
             if wish == "y":
@@ -57,15 +57,18 @@ class Game(EventObserver):
             else:
                 if dice_roll1 == dice_roll2:
                     print(f"{current_player.name} rolls a double and gets out of jail")
+                    current_player.in_jail_count = 0
                 else:
-                    if current_player.in_jail_count == 1:
+                    current_player.in_jail_count -= 1
+                    print(f"{current_player.name} can't roll a double to get out of jail")
+                    if current_player.in_jail_count == 0:
                         fee = input("You need to pay 50 tenge to get out of jail. Type y for yes ")
                         while not fee == "y" :
                             fee = input("You need to pay 50 tenge to get out of jail. Type y for yes ")
                         current_player.balance -= 50
-                    current_player.in_jail_count -= 1
+                    else:
+                        return
         
-        # dice_roll = 4
         dice_roll = dice_roll1 + dice_roll2
         print(f"{current_player.name} rolls {dice_roll}")
         if dice_roll1 == dice_roll2:

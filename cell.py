@@ -20,19 +20,22 @@ class ShansCard:
         self.text = text
 
 class Shans(Cell):
+    #need to implement go to jail Shans cards
+    #also increasing rent by paying fees and adding a house/hotel
+    #and auction
     def __init__(self, board_index):
         super().__init__("Shans", board_index)
         self.arr = [
-            # ShansCard("earn", 100, "",  "Holiday miracle!"),
-            # ShansCard("earn", 150, "", "Bank miscalculation!"),
-            # ShansCard("earn", 100, "", "You won the lottery!"),
-            # ShansCard("earn", 50, "", "Donation!"),
-            # ShansCard("earn", 25, "", "Donation!"),
-            # ShansCard("earn", 20, "", "Donation!"),
-            # ShansCard("earn", 10, "", "Donation!"),
-            # ShansCard("earn", 100,"", "Donation!"),
-            # ShansCard("earn", 120, "", "Donation!"),
-            # ShansCard("earn", 40, "", "Donation!"),
+            ShansCard("earn", 100, "",  "Holiday miracle!"),
+            ShansCard("earn", 150, "", "Bank miscalculation!"),
+            ShansCard("earn", 100, "", "You won the lottery!"),
+            ShansCard("earn", 50, "", "Donation!"),
+            ShansCard("earn", 25, "", "Donation!"),
+            ShansCard("earn", 20, "", "Donation!"),
+            ShansCard("earn", 10, "", "Donation!"),
+            ShansCard("earn", 100,"", "Donation!"),
+            ShansCard("earn", 120, "", "Donation!"),
+            ShansCard("earn", 40, "", "Donation!"),
             ShansCard("pay", 150, "", "Tuition fees!"),
             ShansCard("pay", 200, "", "Mortgage!"),
             ShansCard("pay", 100, "", "Taxes!"),
@@ -71,6 +74,8 @@ class Shans(Cell):
             ShansCard("move", 0, 35, "You take a casual stroll."),
             ShansCard("move", 0, 37, "You take a casual stroll."),
             ShansCard("move", 0, 39, "You take a casual stroll."),
+            ShansCard("jail", 0, "", " goes straight to jail for bank heist."),
+            ShansCard("jail", 0, "", " goes straight to jail for a heinous crime."),
         ]
 
     def getArr(self) :

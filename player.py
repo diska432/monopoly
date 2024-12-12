@@ -47,7 +47,7 @@ class Player:
 
     def landed_on_shans(self,current_cell, game):
         arr = current_cell.getArr()
-        index = randint(1, len(arr) - 1)
+        index = randint(0, len(arr) - 1)
         randomShans = arr[index]
         if randomShans.type_ == "earn":
             print(f"{randomShans.text} {self.name} earns {randomShans.amount}")
@@ -64,6 +64,10 @@ class Player:
                 self.balance += 200
             self.player_index = randomShans.destination
             self.landed_on_company(destination_cell)
+
+        elif randomShans.type_ == "jail":
+            print(f"{self.name}{randomShans.text}")
+            self.go_to_jail()
 
     def landed_on_random_cell(self, current_cell):
         if current_cell.type == "visit":
