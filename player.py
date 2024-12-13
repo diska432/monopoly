@@ -164,19 +164,23 @@ class Player:
             possibleUpgrade.append("Apple")
         input_company = input("Please type the name of the company: ")
         if input_company not in possibleUpgrade:
-            print("Please enter company name from the given list")
+            print("Not a valid company. Please enter company name from the given list")
             return
+
         for cell in game.board:
             if isinstance(cell, Company) and cell.name == input_company:
                 if cell.color == "brown":
                     if self.upgradeMap["upgradeBrown"]:
                         print("You can only upgrade one company set one move at a time")
                         return 1
+                    elif cell.countStars == 5:
+                        print("You already have 5 stars on this company")
+                        return 1
                     else:
                         self.upgradeMap["upgradeBrown"] = True
                         if self.balance >= cell.fee:
                             self.balance -= cell.fee
-                            #need to hardcode all the rents
+                            print(f"{self.name} buys a star for {cell.name} for {cell.fee} tenge")
                             if cell.countStars == 0:
                                 cell.countStars += 1
                                 if cell.name == "Chanel":
@@ -205,14 +209,366 @@ class Player:
                                 elif cell.name == "Hugo Boss":
                                     cell.rent = 320
                             
-                            elif cell.countStars == 1:
+                            elif cell.countStars == 4:
                                 cell.countStars += 1
                                 if cell.name == "Chanel":
                                     cell.rent = 250
                                 elif cell.name == "Hugo Boss":
                                     cell.rent = 450
+                        else:
+                            print("You don't have enough money to upgrade this cell")
+                            return 1
+
+                if cell.color == "pink":
+                    if self.upgradeMap["upgradePink"]:
+                        print("You can only upgrade one company set one move at a time")
+                        return 1
+                    elif cell.countStars == 5:
+                        print("You already have 5 stars on this company")
+                        return 1
+                    else:
+                        self.upgradeMap["upgradePink"] = True
+                        if self.balance >= cell.fee:
+                            self.balance -= cell.fee
+                            print(f"{self.name} buys a star for {cell.name} for {cell.fee} tenge")
+                            if cell.countStars == 0:
+                                cell.countStars += 1
+                                if cell.name == "Lacoste":
+                                    cell.rent = 40
+                                else:
+                                    cell.rent = 30
                             
+                            elif cell.countStars == 1:
+                                cell.countStars += 1
+                                if cell.name == "Lacoste":
+                                    cell.rent = 100
+                                else:
+                                    cell.rent = 90
+                            
+                            elif cell.countStars == 2:
+                                cell.countStars += 1
+                                if cell.name == "Lacoste":
+                                    cell.rent = 300
+                                else:
+                                    cell.rent = 270
+                            
+                            elif cell.countStars == 3:
+                                cell.countStars += 1
+                                if cell.name == "Lacoste":
+                                    cell.rent = 450
+                                else:
+                                    cell.rent = 400
+                            
+                            elif cell.countStars == 4:
+                                cell.countStars += 1
+                                if cell.name == "Lacoste":
+                                    cell.rent = 550
+                                else:
+                                    cell.rent = 600
+                        else:
+                            print("You don't have enough money to upgrade this cell")
+                            return 1 
                     
+                if cell.color == "purple":
+                    if self.upgradeMap["upgradePurple"]:
+                        print("You can only upgrade one company set one move at a time")
+                        return 1
+                    elif cell.countStars == 5:
+                        print("You already have 5 stars on this company")
+                        return 1
+                    else:
+                        self.upgradeMap["upgradePurple"] = True
+                        if self.balance >= cell.fee:
+                            self.balance -= cell.fee
+                            print(f"{self.name} buys a star for {cell.name} for {cell.fee} tenge")
+                            if cell.countStars == 0:
+                                cell.countStars += 1
+                                if cell.name == "Twitter":
+                                    cell.rent = 60
+                                else:
+                                    cell.rent = 50
+                            
+                            elif cell.countStars == 1:
+                                cell.countStars += 1
+                                if cell.name == "Twitter":
+                                    cell.rent = 180
+                                else:
+                                    cell.rent = 150
+                            
+                            elif cell.countStars == 2:
+                                cell.countStars += 1
+                                if cell.name == "Twitter":
+                                    cell.rent = 500
+                                else:
+                                    cell.rent = 450
+                            
+                            elif cell.countStars == 3:
+                                cell.countStars += 1
+                                if cell.name == "Twitter":
+                                    cell.rent = 700
+                                else:
+                                    cell.rent = 625
+                            
+                            elif cell.countStars == 4:
+                                cell.countStars += 1
+                                if cell.name == "Twitter":
+                                    cell.rent = 900
+                                else:
+                                    cell.rent = 750
+                        else:
+                            print("You don't have enough money to upgrade this cell")
+                            return 1 
+                    
+                if cell.color == "orange":
+                    if self.upgradeMap["upgradeOrange"]:
+                        print("You can only upgrade one company set one move at a time")
+                        return 1
+                    elif cell.countStars == 5:
+                        print("You already have 5 stars on this company")
+                        return 1
+                    else:
+                        self.upgradeMap["upgradeOrange"] = True
+                        if self.balance >= cell.fee:
+                            self.balance -= cell.fee
+                            print(f"{self.name} buys a star for {cell.name} for {cell.fee} tenge")
+                            if cell.countStars == 0:
+                                cell.countStars += 1
+                                if cell.name == "Fanta":
+                                    cell.rent = 80
+                                else:
+                                    cell.rent = 60
+                            
+                            elif cell.countStars == 1:
+                                cell.countStars += 1
+                                if cell.name == "Fanta":
+                                    cell.rent = 220
+                                else:
+                                    cell.rent = 200
+                            
+                            elif cell.countStars == 2:
+                                cell.countStars += 1
+                                if cell.name == "Fanta":
+                                    cell.rent = 600
+                                else:
+                                    cell.rent = 550
+                            
+                            elif cell.countStars == 3:
+                                cell.countStars += 1
+                                if cell.name == "Fanta":
+                                    cell.rent = 800
+                                else:
+                                    cell.rent = 750
+                            
+                            elif cell.countStars == 4:
+                                cell.countStars += 1
+                                if cell.name == "Fanta":
+                                    cell.rent = 1000
+                                else:
+                                    cell.rent = 950
+                        else:
+                            print("You don't have enough money to upgrade this cell")
+                            return 1 
+                    
+                if cell.color == "red":
+                    if self.upgradeMap["upgradeRed"]:
+                        print("You can only upgrade one company set one move at a time")
+                        return 1
+                    elif cell.countStars == 5:
+                        print("You already have 5 stars on this company")
+                        return 1
+                    else:
+                        self.upgradeMap["upgradeRed"] = True
+                        if self.balance >= cell.fee:
+                            self.balance -= cell.fee
+                            print(f"{self.name} buys a star for {cell.name} for {cell.fee} tenge")
+                            if cell.countStars == 0:
+                                cell.countStars += 1
+                                if cell.name == "Scat":
+                                    cell.rent = 100
+                                else:
+                                    cell.rent = 90
+                            
+                            elif cell.countStars == 1:
+                                cell.countStars += 1
+                                if cell.name == "Scat":
+                                    cell.rent = 300
+                                else:
+                                    cell.rent = 250
+                            
+                            elif cell.countStars == 2:
+                                cell.countStars += 1
+                                if cell.name == "Scat":
+                                    cell.rent = 750
+                                else:
+                                    cell.rent = 700
+                            
+                            elif cell.countStars == 3:
+                                cell.countStars += 1
+                                if cell.name == "Scat":
+                                    cell.rent = 925
+                                else:
+                                    cell.rent = 875
+                            
+                            elif cell.countStars == 4:
+                                cell.countStars += 1
+                                if cell.name == "Scat":
+                                    cell.rent = 1100
+                                else:
+                                    cell.rent = 1050
+                        else:
+                            print("You don't have enough money to upgrade this cell")
+                            return 1 
+                    
+                if cell.color == "yellow":
+                    if self.upgradeMap["upgradeYellow"]:
+                        print("You can only upgrade one company set one move at a time")
+                        return 1
+                    elif cell.countStars == 5:
+                        print("You already have 5 stars on this company")
+                        return 1
+                    else:
+                        self.upgradeMap["upgradeYellow"] = True
+                        if self.balance >= cell.fee:
+                            self.balance -= cell.fee
+                            print(f"{self.name} buys a star for {cell.name} for {cell.fee} tenge")
+                            if cell.countStars == 0:
+                                cell.countStars += 1
+                                if cell.name == "KFC":
+                                    cell.rent = 120
+                                else:
+                                    cell.rent = 110
+                            
+                            elif cell.countStars == 1:
+                                cell.countStars += 1
+                                if cell.name == "KFC":
+                                    cell.rent = 360
+                                else:
+                                    cell.rent = 330
+                            
+                            elif cell.countStars == 2:
+                                cell.countStars += 1
+                                if cell.name == "KFC":
+                                    cell.rent = 850
+                                else:
+                                    cell.rent = 800
+                            
+                            elif cell.countStars == 3:
+                                cell.countStars += 1
+                                if cell.name == "KFC":
+                                    cell.rent = 1025
+                                else:
+                                    cell.rent = 975
+                            
+                            elif cell.countStars == 4:
+                                cell.countStars += 1
+                                if cell.name == "KFC":
+                                    cell.rent = 1200
+                                else:
+                                    cell.rent = 1150
+                        else:
+                            print("You don't have enough money to upgrade this cell")
+                            return 1 
+                    
+                if cell.color == "green":
+                    if self.upgradeMap["upgradeGreen"]:
+                        print("You can only upgrade one company set one move at a time")
+                        return 1
+                    elif cell.countStars == 5:
+                        print("You already have 5 stars on this company")
+                        return 1
+                    else:
+                        self.upgradeMap["upgradeGreen"] = True
+                        if self.balance >= cell.fee:
+                            self.balance -= cell.fee
+                            print(f"{self.name} buys a star for {cell.name} for {cell.fee} tenge")
+                            if cell.countStars == 0:
+                                cell.countStars += 1
+                                if cell.name == "Hilton":
+                                    cell.rent = 150
+                                else:
+                                    cell.rent = 130
+                            
+                            elif cell.countStars == 1:
+                                cell.countStars += 1
+                                if cell.name == "Hilton":
+                                    cell.rent = 450
+                                else:
+                                    cell.rent = 390
+                            
+                            elif cell.countStars == 2:
+                                cell.countStars += 1
+                                if cell.name == "Hilton":
+                                    cell.rent = 1000
+                                else:
+                                    cell.rent = 900
+                            
+                            elif cell.countStars == 3:
+                                cell.countStars += 1
+                                if cell.name == "Hilton":
+                                    cell.rent = 1200
+                                else:
+                                    cell.rent = 1100
+                            
+                            elif cell.countStars == 4:
+                                cell.countStars += 1
+                                if cell.name == "Hilton":
+                                    cell.rent = 1400
+                                else:
+                                    cell.rent = 1275
+                        else:
+                            print("You don't have enough money to upgrade this cell")
+                            return 1 
+
+                if cell.color == "blue":
+                    if self.upgradeMap["upgradeBlue"]:
+                        print("You can only upgrade one company set one move at a time")
+                        return 1
+                    elif cell.countStars == 5:
+                        print("You already have 5 stars on this company")
+                        return 1
+                    else:
+                        self.upgradeMap["upgradeBlue"] = True
+                        if self.balance >= cell.fee:
+                            self.balance -= cell.fee
+                            print(f"{self.name} buys a star for {cell.name} for {cell.fee} tenge")
+                            if cell.countStars == 0:
+                                cell.countStars += 1
+                                if cell.name == "Samsung":
+                                    cell.rent = 175
+                                elif cell.name == "Apple":
+                                    cell.rent = 200
+                            
+                            elif cell.countStars == 1:
+                                cell.countStars += 1
+                                if cell.name == "Samsung":
+                                    cell.rent = 500
+                                elif cell.name == "Apple":
+                                    cell.rent = 600
+                            
+                            elif cell.countStars == 2:
+                                cell.countStars += 1
+                                if cell.name == "Samsung":
+                                    cell.rent = 1100
+                                elif cell.name == "Apple":
+                                    cell.rent = 1400
+                            
+                            elif cell.countStars == 3:
+                                cell.countStars += 1
+                                if cell.name == "Samsung":
+                                    cell.rent = 1300
+                                elif cell.name == "Apple":
+                                    cell.rent = 1700
+                            
+                            elif cell.countStars == 4:
+                                cell.countStars += 1
+                                if cell.name == "Samsung":
+                                    cell.rent = 1500
+                                elif cell.name == "Apple":
+                                    cell.rent = 2000
+                        else:
+                            print("You don't have enough money to upgrade this cell")
+                            return 1
+
 
     def landed_on_company(self, company):
         if company.owner is None:
