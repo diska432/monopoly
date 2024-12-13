@@ -45,6 +45,9 @@ class Game(EventObserver):
            
             
     def make_move(self, current_player):
+        #reset upgradeMap every time a player moves
+        for key in current_player.upgradeMap.keys():
+            current_player.upgradeMap[key] = False
         # dice_roll1 = self.roll_dice()
         dice_roll1 = 5
         # dice_roll2 = self.roll_dice()
@@ -69,7 +72,8 @@ class Game(EventObserver):
                     else:
                         return
         
-        dice_roll = dice_roll1 + dice_roll2
+        # dice_roll = dice_roll1 + dice_roll2
+        dice_roll = 1
         print(f"{current_player.name} rolls {dice_roll}")
         if dice_roll1 == dice_roll2:
             print(f"{current_player.name} rolls a double")
@@ -103,13 +107,14 @@ class Game(EventObserver):
         elif isinstance(current_cell, RandomCell):
             current_player.landed_on_random_cell(current_cell)
         
-        # if current_player.doubles_rolled > 0:
-        #     self.make_move(current_player)
     
     def play(self):
         handler = InputHandler()
         while True:
             res =  handler.handleInput(self)
+            if res == 2:
+                print("We have a winner!")
+                return
 
     def notify(self, event):
         print(f"Event: {event}")
