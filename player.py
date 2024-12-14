@@ -13,16 +13,16 @@ class Player:
         self.in_jail_count = 0
         self.doubles_rolled = 0
         self.countMap = {
-            "countBrown": 0,
-            "countPink" : 0,
-            "countPurple" : 0,
-            "countOrange" : 0,
-            "countRed" : 0,
-            "countYellow" : 0,
-            "countGreen" : 0,
-            "countBlue" : 0,
-            "countCars" : 0,
-            "countVideoGame" : 0
+            "count_brown": 0,
+            "count_pink" : 0,
+            "count_purple" : 0,
+            "count_orange" : 0,
+            "count_red" : 0,
+            "count_yellow" : 0,
+            "count_green" : 0,
+            "count_blue" : 0,
+            "count_cars" : 0,
+            "count_video_game" : 0
         }        
         self.upgradeMap = {
             "upgradeBrown": False,
@@ -36,132 +36,100 @@ class Player:
         }        
 
     def buy_company(self, company):
-        #need to implement increment of rent for cars and video games
         if self.balance >= company.price:
             company.owner = self
             self.owned_companies.append(company)
             self.balance -= company.price
 
-            if company.color == "brown":
-                self.countMap["countBrown"] += 1
-                if self.countMap["countBrown"] == 2:
-                    for company in self.owned_companies:
-                        if company.color == "brown":
-                            company.rent *= 2
-            elif company.color == "pink":
-                self.countMap["countPink"] += 1
-                if self.countMap["countPink"] == 3:
-                    for company in self.owned_companies:
-                        if company.color == "pink":
-                            company.rent *= 2
-            elif company.color == "purple":
-                self.countMap["countPurple"] += 1
-                if self.countMap["countPurple"] == 3:
-                    for company in self.owned_companies:
-                        if company.color == "purple":
-                            company.rent *= 2
-            elif company.color == "orange":
-                self.countMap["countOrange"] += 1
-                if self.countMap["countOrange"] == 3:
-                    for company in self.owned_companies:
-                        if company.color == "orange":
-                            company.rent *= 2
-            elif company.color == "red":
-                self.countMap["countRed"] += 1
-                if self.countMap["countRed"] == 3:
-                    for company in self.owned_companies:
-                        if company.color == "red":
-                            company.rent *= 2
-            elif company.color == "yellow":
-                self.countMap["countYellow"] += 1
-                if self.countMap["countYellow"] == 3:
-                    for company in self.owned_companies:
-                        if company.color == "yellow":
-                            company.rent *= 2
-            elif company.color == "green":
-                self.countMap["countGreen"] += 1
-                if self.countMap["countGreen"] == 3:
-                    for company in self.owned_companies:
-                        if company.color == "green":
-                            company.rent *= 2
-            elif company.color == "blue":
-                self.countMap["countBlue"] += 1
-                if self.countMap["countBlue"] == 3:
-                    for company in self.owned_companies:
-                        if company.color == "blue":
-                            company.rent *= 2
-            elif company.type == "car":
-                self.countMap["countCars"] += 1
-                for company in self.owned_companies:
-                    if company.type == "car":
-                        company.rent *= 2
+            count_string = "count_" + company.color
+            if company.color == "brown" or company.color == "blue":
+                self.countMap[count_string] += 1
+                if self.countMap[count_string] == 2:
+                    for c in self.owned_companies:
+                        if c.color == company.color:
+                            c.rent *= 2
+            else:
+                self.countMap[count_string] += 1
+                if self.countMap[count_string] == 3:
+                    for c in self.owned_companies:
+                        if c.color == company.color:
+                            c.rent *= 2
+            if company.type == "car":
+                self.countMap["count_cars"] += 1
+                for c in self.owned_companies:
+                    if c.type == "car":
+                        c.rent *= 2
             elif company.type == "videogame":
-                self.countMap["countVideoGame"] += 1
+                self.countMap["count_video_game"] += 1
 
             print(f"{self.name} bought {company.name} for {company.price}")
         else:
             print(f"{self.name} does not have enough balance to buy {company.name}")
 
-    def upgrade_company(self, game):
-        if len(self.owned_companies) == 0 or not (self.countMap["countBrown"] == 2 or self.countMap["countPink"] == 3 or 
-        self.countMap["countPurple"] == 3 or self.countMap["countOrange"] == 3 or self.countMap["countRed"] == 3 or 
-        self.countMap["countYellow"] == 3 or self.countMap["countGreen"] == 3 or self.countMap["countBlue"] == 2):
-            print(f"{self.name}, you have no companies to upgrade")
-            return 
-        print("From the list below choose the company you want to upgrade")  
+    def possible_company_monopoly_list(self):
         possibleUpgrade = []
-        if self.countMap["countBrown"] == 2:
+        if self.countMap["count_brown"] == 2:
             print("Chanel") 
             possibleUpgrade.append("Chanel")
             print("Hugo Boss") 
             possibleUpgrade.append("Hugo Boss")
-        if self.countMap["countPink"] == 3:
+        if self.countMap["count_pink"] == 3:
             print("Adidas")
             possibleUpgrade.append("Adidas")
             print("Puma")
             possibleUpgrade.append("Puma")
             print("Lacoste")
             possibleUpgrade.append("Lacoste")
-        if self.countMap["countPurple"] == 3:
+        if self.countMap["count_purple"] == 3:
             print("Skype")
             possibleUpgrade.append("Skype")
             print("Facebook")
             possibleUpgrade.append("Facebook")
             print("Twitter")
             possibleUpgrade.append("Twitter")
-        if self.countMap["countOrange"] == 3:
+        if self.countMap["count_orange"] == 3:
             print("Coca-Cola")
             possibleUpgrade.append("Coca-Cola")
             print("Pepsi")
             possibleUpgrade.append("Pepsi")
             print("Fanta")
             possibleUpgrade.append("Fanta")
-        if self.countMap["countRed"] == 3:
+        if self.countMap["count_red"] == 3:
             print("Air Astana")
             possibleUpgrade.append("Air Astana")
             print("Fly Arystan")
             possibleUpgrade.append("Fly Arystan")
             print("Scat")
             possibleUpgrade.append("Scat")
-        if self.countMap["countYellow"] == 3:
+        if self.countMap["count_yellow"] == 3:
             print("Im Cafe")
             possibleUpgrade.append("Im Cafe")
             print("Burger King")
             possibleUpgrade.append("Burger King")
             print("KFC")
             possibleUpgrade.append("KFC")
-        if self.countMap["countGreen"] == 3:
+        if self.countMap["count_green"] == 3:
             print("Radisson")
             possibleUpgrade.append("Radisson")
             print("Novotel")
             possibleUpgrade.append("Novotel")
             print("Hilton")
             possibleUpgrade.append("Hilton")
-        if self.countMap["countBlue"] == 3:
+        if self.countMap["count_blue"] == 3:
             print("Samsung")
             possibleUpgrade.append("Samsung")
             print("Apple")
             possibleUpgrade.append("Apple")
+        return possibleUpgrade
+
+    def upgrade_company(self, game):
+        if len(self.owned_companies) == 0 or not (self.countMap["count_brown"] == 2 or self.countMap["count_pink"] == 3 or 
+        self.countMap["count_purple"] == 3 or self.countMap["count_orange"] == 3 or self.countMap["count_red"] == 3 or 
+        self.countMap["count_yellow"] == 3 or self.countMap["count_green"] == 3 or self.countMap["count_blue"] == 2):
+            print(f"{self.name}, you have no companies to upgrade")
+            return 
+        print("From the list below choose the company you want to upgrade")  
+        possibleUpgrade = self.possible_company_monopoly_list()
         input_company = input("Please type the name of the company: ")
         if input_company not in possibleUpgrade:
             print("Not a valid company. Please enter company name from the given list")
@@ -569,6 +537,291 @@ class Player:
                             print("You don't have enough money to upgrade this cell")
                             return 1
 
+    def downgrade_company(self):
+        input_company = input("Please enter the company name you want to sell: ")
+        for company in self.owned_companies:
+            if input_company == company.name:
+                if company.countStars > 0:
+                    company.countStars -= 1
+                    if company.color == "brown":
+                        if company.name == "Chanel":
+                            if company.countStars == 4:
+                                company.rent = 160
+                            elif company.countStars == 3:
+                                company.rent = 90
+                            elif company.countStars == 2:
+                                company.rent = 30
+                            elif company.countStars == 1:
+                                company.rent = 10
+                            elif company.countStars == 0:
+                                company.rent = 4
+                        elif company.name == "Hugo Boss":
+                            if company.countStars == 4:
+                                company.rent = 320
+                            elif company.countStars == 3:
+                                company.rent = 180
+                            elif company.countStars == 2:
+                                company.rent = 60
+                            elif company.countStars == 1:
+                                company.rent = 20
+                            elif company.countStars == 0:
+                                company.rent = 8
+                    elif company.color == "pink":
+                        if company.name == "Lacoste":
+                            if company.countStars == 4:
+                                company.rent = 450
+                            elif company.countStars == 3:
+                                company.rent = 300
+                            elif company.countStars == 2:
+                                company.rent = 100
+                            elif company.countStars == 1:
+                                company.rent = 40
+                            elif company.countStars == 0:
+                                company.rent = 16
+                        else:
+                            if company.countStars == 4:
+                                company.rent = 400
+                            elif company.countStars == 3:
+                                company.rent = 270
+                            elif company.countStars == 2:
+                                company.rent = 90
+                            elif company.countStars == 1:
+                                company.rent = 30
+                            elif company.countStars == 0:
+                                company.rent = 12
+                    elif company.color == "purple":
+                        if company.name == "Twitter":
+                            if company.countStars == 4:
+                                company.rent = 700
+                            elif company.countStars == 3:
+                                company.rent = 500
+                            elif company.countStars == 2:
+                                company.rent = 180
+                            elif company.countStars == 1:
+                                company.rent = 60
+                            elif company.countStars == 0:
+                                company.rent = 24
+                        else:
+                            if company.countStars == 4:
+                                company.rent = 625
+                            elif company.countStars == 3:
+                                company.rent = 450
+                            elif company.countStars == 2:
+                                company.rent = 150
+                            elif company.countStars == 1:
+                                company.rent = 50
+                            elif company.countStars == 0:
+                                company.rent = 20
+                    elif company.color == "orange":
+                        if company.name == "Fanta":
+                            if company.countStars == 4:
+                                company.rent = 800
+                            elif company.countStars == 3:
+                                company.rent = 600
+                            elif company.countStars == 2:
+                                company.rent = 220
+                            elif company.countStars == 1:
+                                company.rent = 80
+                            elif company.countStars == 0:
+                                company.rent = 32
+                        else:
+                            if company.countStars == 4:
+                                company.rent = 750
+                            elif company.countStars == 3:
+                                company.rent = 550
+                            elif company.countStars == 2:
+                                company.rent = 200
+                            elif company.countStars == 1:
+                                company.rent = 60
+                            elif company.countStars == 0:
+                                company.rent = 28
+                    elif company.color == "red":
+                        if company.name == "Scat":
+                            if company.countStars == 4:
+                                company.rent = 925
+                            elif company.countStars == 3:
+                                company.rent = 750
+                            elif company.countStars == 2:
+                                company.rent = 300
+                            elif company.countStars == 1:
+                                company.rent = 100
+                            elif company.countStars == 0:
+                                company.rent = 40
+                        else:
+                            if company.countStars == 4:
+                                company.rent = 875
+                            elif company.countStars == 3:
+                                company.rent = 700
+                            elif company.countStars == 2:
+                                company.rent = 250
+                            elif company.countStars == 1:
+                                company.rent = 90
+                            elif company.countStars == 0:
+                                company.rent = 36
+                    elif company.color == "yellow":
+                        if company.name == "KFC":
+                            if company.countStars == 4:
+                                company.rent = 1025
+                            elif company.countStars == 3:
+                                company.rent = 850
+                            elif company.countStars == 2:
+                                company.rent = 360
+                            elif company.countStars == 1:
+                                company.rent = 120
+                            elif company.countStars == 0:
+                                company.rent = 48
+                        else:
+                            if company.countStars == 4:
+                                company.rent = 975
+                            elif company.countStars == 3:
+                                company.rent = 800
+                            elif company.countStars == 2:
+                                company.rent = 330
+                            elif company.countStars == 1:
+                                company.rent = 110
+                            elif company.countStars == 0:
+                                company.rent = 44
+                    elif company.color == "green":
+                        if company.name == "Hilton":
+                            if company.countStars == 4:
+                                company.rent = 1200
+                            elif company.countStars == 3:
+                                company.rent = 1000
+                            elif company.countStars == 2:
+                                company.rent = 450
+                            elif company.countStars == 1:
+                                company.rent = 150
+                            elif company.countStars == 0:
+                                company.rent = 56
+                        else:
+                            if company.countStars == 4:
+                                company.rent = 1100
+                            elif company.countStars == 3:
+                                company.rent = 900
+                            elif company.countStars == 2:
+                                company.rent = 390
+                            elif company.countStars == 1:
+                                company.rent = 130
+                            elif company.countStars == 0:
+                                company.rent = 52
+                    elif company.color == "blue":
+                        if company.name == "Apple":
+                            if company.countStars == 4:
+                                company.rent = 1700
+                            elif company.countStars == 3:
+                                company.rent = 1400
+                            elif company.countStars == 2:
+                                company.rent = 600
+                            elif company.countStars == 1:
+                                company.rent = 200
+                            elif company.countStars == 0:
+                                company.rent = 100
+                        else:
+                            if company.countStars == 4:
+                                company.rent = 1300
+                            elif company.countStars == 3:
+                                company.rent = 1100
+                            elif company.countStars == 2:
+                                company.rent = 500
+                            elif company.countStars == 1:
+                                company.rent = 175
+                            elif company.countStars == 0:
+                                company.rent = 70
+                    print(f"{self.name} earns {company.fee} by selling a star from {company.name}")
+                    self.balance += company.fee
+                    return 1
+                else:
+                    print("This company does not have any stars. Please choose a valid company that has stars.")
+                    return 1
+        print("Invalid input")
+
+    def can_mortgage_company(self, color):
+        possibleMortgage = [x for x in self.owned_companies if x.color == color]
+        for x in possibleMortgage:
+            if x.countStars > 0:
+                print("Cannot mortgage company. You need to sell all stars first")
+                return 1
+        return 2
+    
+
+    def mortgage_company(self):
+        input_company = input("Please enter the company name you want to mortgage: ")
+        for company in self.owned_companies:
+            if input_company == company.name:
+                if company.mortgage_count > 0:
+                    print("The company is already mortgaged.")
+                    return 1
+                if company.color == "brown" or company.color == "blue":
+                    count_string = "count_" + company.color 
+                    if self.countMap[count_string] == 2:
+                        can_mortgage = self.can_mortgage_company(color)
+                        if can_mortgage == 1:
+                            return 1
+                    company.mortgage_count = 15
+                    company.rent = 0
+                    self.balance += company.price
+                else:
+                    count_string = "count_" + company.color 
+                    if self.countMap[count_string] == 3:
+                        can_mortgage = self.can_mortgage_company(color)
+                        if can_mortgage == 1:
+                            return 1
+                    company.mortgage_count = 15
+                    company.rent = 0
+                    self.balance += company.price / 2    
+
+    def update_mortgage(self):
+        for company in self.owned_companies:
+            if company.mortgage_count == 0:
+                #if mortgage gets to 0 then company goes back to bank
+                count_string = "count_" + company.color
+                self.countMap[count_string] -= 1
+                if company.color == "brown" or company.color == "blue":
+                    if self.countMap[count_string] == 1:
+                        self.decrease_rent_after_mortgage_ends(company.color)
+                else:
+                    if self.countMap[count_string] == 2:
+                        self.decrease_rent_after_mortgage_ends(company.color)
+                        
+                company.owner = None
+                company.rent = company.initial_rent
+                companies_after_removal = list(filter(lambda x: x.name != company.name, self.owned_companies))
+                self.owned_companies = companies_after_removal
+
+            if company.mortgage_count >= 0:
+                company.mortgage_count -= 1
+
+    def decrease_rent_after_mortgage_ends(self, color):
+        companies = [x for x in self.owned_companies if x.color == color]
+        for c in companies:
+            c.rent /= 2
+
+    def lift_mortgage(self):
+        input_name = input("Please enter the name of the company for which you want to lift the mortgage: ")
+        for company in self.owned_companies:
+            if company.name == input_name:
+                if company.mortgage_count == -1:
+                    print("Invalid input")
+                    return 1
+                lift_mortgage_price = ceil((company.price / 2) * 1.1)
+                if self.balance >= lift_mortgage_price:
+                    self.balance -= lift_mortgage_price
+                    company.mortgage_count = -1
+                    company.rent = comapny.initial_rent
+                    count_string = "count_" + company.color
+                    if company.color == "brown" or company.color == "blue":
+                        if self.countMap[count_string] == 2:
+                            company.rent *= 2
+                    else:
+                        if self.countMap[count_string] == 3:
+                            company.rent *= 2
+                    return 1
+                else:
+                    print("Not enough money to lift mortgage")
+                    return 1 
+        print("Invalid input")
+        return 1
+                
 
     def landed_on_company(self, company):
         if company.owner is None:

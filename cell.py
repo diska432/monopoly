@@ -13,6 +13,8 @@ class Company(Cell):
         self.fee = fee
         self.color = color
         self.countStars = 0
+        self.mortgage_count = -1
+        self.initial_rent = rent
 
 class ShansCard:
     def __init__(self, type_, amount = 0, destination = "", text = ""):

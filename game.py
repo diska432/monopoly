@@ -36,6 +36,7 @@ class Game(EventObserver):
 
     def play_turn(self):
         current_player = self.players[self.current_player_index]
+        current_player.update_mortgage()
         self.make_move(current_player)     
         if current_player.doubles_rolled > 0 and current_player.in_jail_count > 0:
             current_player.in_jail_count = 0
