@@ -12,7 +12,7 @@ class Game(EventObserver):
         self.colors = ["Red", "Green", "Blue", "Black", "Yellow", "Purple", "Yellow"]
         new_board = Board()
         self.board = Board.getBoard(new_board)
-        self.state = "lobby"
+        self.state = "empty"
         self.current_player_index = 0
 
     def add_player(self, player):
@@ -66,9 +66,7 @@ class Game(EventObserver):
                     current_player.in_jail_count -= 1
                     print(f"{current_player.name} can't roll a double to get out of jail")
                     if current_player.in_jail_count == 0:
-                        fee = input("You need to pay 50 tenge to get out of jail. Type y for yes ")
-                        while not fee == "y" :
-                            fee = input("You need to pay 50 tenge to get out of jail. Type y for yes ")
+                        fee = input("You need to pay 50 tenge to get out of jail. Enter any key to pay ")
                         current_player.balance -= 50
                     else:
                         return
@@ -100,7 +98,7 @@ class Game(EventObserver):
             current_player.landed_on_company(current_cell, dice_roll)
 
         elif isinstance(current_cell, Tax):
-            current_player.pay_tax(current_cell)
+            current_player.pay_tax(current_cell, self)
 
         elif isinstance(current_cell, Shans):
             current_player.landed_on_shans(current_cell, self)
@@ -114,7 +112,6 @@ class Game(EventObserver):
         while True:
             res =  handler.handleInput(self)
             if res == 2:
-                print("We have a winner!")
                 return
 
     def notify(self, event):

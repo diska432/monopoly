@@ -844,26 +844,62 @@ class Player:
                         pay_rent = dice_roll * 4
                     elif company.owner.countMap["count_video_game"] == 2:
                         pay_rent = dice_roll * 10
-                    rent = input(f"You need to pay rent in the amount of {pay_rent}! Type y for yes\n")
-                    while not rent == "y":
-                        rent = input(f"You need to pay rent in the amount of {pay_rent}! Type y for yes\n")
+                    rent = input(f"You need to pay rent in the amount of {pay_rent}! Enter any key to pay\n")
+                    if self.balance >= pay_rent:
+                        self.balance -= pay_rent
+                        print(f"{self.name} paid {pay_rent}")
+                        return
+                    else:
+                        while True:
+                            pay = input(f"You need to pay {pay_rent}! Enter any key to pay\n")
+                            if self.balance >= pay_rent:
+                                self.balance -= pay_rent
+                                print(f"{self.name} paid {pay_rent}")
+                                break
+                            result = self.not_enough_money()
+                            if result == 2:
+                                return
+
                 else:
-                    rent = input(f"You need to pay rent in the amount of {company.rent}! Type y for yes\n")
-                    while not rent == "y":
-                        rent = input(f"You need to pay rent in the amount of {company.rent}! Type y for yes\n")
-                    company.owner.balance += company.rent
-                    self.balance -= company.rent
+                    if self.balance >= company.rent:
+                        self.balance -= company.rent
+                        print(f"{self.name} paid {company.rent}")
+                        return
+                    else:
+                        while True:
+                            pay = input(f"You need to pay {company.rent}! Enter any key to pay\n")
+                            if self.balance >= company.rent:
+                                self.balance -= company.rent
+                                print(f"{self.name} paid {company.rent}")
+                                break
+                            result = self.not_enough_money()
+                            if result == 2:
+                                return
     
-    def pay_tax(self, tax):
-        pay = input(f"You need to pay {tax.amount}! Type y for yes\n")
-        while not pay == "y":
-            pay = input(f"You need to pay {tax.amount}! Type y for yes\n")
+    def pay_tax(self, tax, game):
+        pay = input(f"You need to pay {tax.amount}! Enter any key to pay \n")
         if self.balance >= tax.amount:
             self.balance -= tax.amount
             print(f"{self.name} paid {tax.amount}")
-        # else:
-            #need to add logic for players to choose if they want to resign or sell company
-            # self.resign()
+            return
+        else:
+            while True:
+                pay = input(f"You need to pay {tax.amount}! Enter any key to pay\n")
+                if self.balance >= tax.amount:
+                    self.balance -= tax.amount
+                    break
+                result = self.not_enough_money()
+                if result == 2:
+                    return
+                
+    def not_enough_money(self):
+        choice = input("You don't have enough money. You need to either sell, mortgage or resign. Type your choice")
+        if choice == "resign":
+            return self.resign(game)
+        elif choice == "sell":
+            self.downgrade_company()
+        elif choice == "mortgage":
+            self.mortgage_company()
 
     def landed_on_shans(self,current_cell, game, dice_roll):
         arr = current_cell.getArr()
@@ -874,7 +910,7 @@ class Player:
             self.balance += randomShans.amount
 
         elif randomShans.type_ == "pay":
-            self.pay_tax(randomShans)
+            self.pay_tax(randomShans, game)
 
         elif randomShans.type_ == "move":
             destination_cell = game.board[randomShans.destination]
@@ -925,7 +961,8 @@ class Player:
             company.owner = None 
         new_players = list(filter(lambda x: x.name != self.name, game.players))
         game.players = new_players
-
+        game.current_player_index %= len(game.players)
+        return 2
 
     def __str__(self):
         return f"{self.name} (Balance: {self.balance}, Color: {self.color})"
