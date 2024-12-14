@@ -13,7 +13,7 @@ class InputHandler:
             back_to_lounge = input("Please enter any key to continue ")
             game.state = "empty"
             return 2
-        op1 = input("Type a command:\n start = start the game\n resign = resign from the game\n move = roll a dice and move\n add = add a  player to the lobby\n exit = exit lobby (only from lobby state) \n dp = display current player\n dc = display companies owned by player\n upgrade = upgrade company\n sell = sell a star of company\n mortgage = mortgage company to the bank\n lift = lift mortgage of a company\n")
+        op1 = input("Type a command:\n start = start the game\n resign = resign from the game\n move = roll a dice and move\n add = add a  player to the lobby\n exit = exit lobby (only from lobby state) \n dp = display current player\n dc = display companies owned by player\n upgrade = upgrade company\n sell = sell a star of company\n mortgage = mortgage company to the bank\n lift = lift mortgage of a company\n negotiate = enter negotiations with a player\n")
         if op1 == "start":
             if game.state == "active":
                 print("You are already in a game. Please finish the current game before starting a new one.\n")
@@ -67,9 +67,7 @@ class InputHandler:
             if len(game.players) == 0:
                 print("No players in the game. Cannot display current player.\n")
                 return 1
-            print(f"Name: {current_player.name}")
-            print(f"Color: {current_player.color}")
-            print(f"Balance: {current_player.balance}")
+            current_player.display_player()
 
         elif op1 == "dc":
             if game.state == "gameover" or game.state == "lobby":
@@ -78,8 +76,7 @@ class InputHandler:
             if len(game.players) == 0:
                 print("No players in the game. Cannot display current player's companies.\n")
                 return 1
-            for c in current_player.owned_companies:
-                print(f"{c.name}, mortgage: {c.mortgage_count}, fee: {c.fee}, rent: {c.rent}")
+            current_player.display_companies()
 
         elif op1 == "upgrade":
             if game.state == "gameover" or game.state == "lobby":
@@ -109,14 +106,20 @@ class InputHandler:
             current_player.mortgage_company()  
 
         elif op1 == "lift":
-            if len(game.players) == 0:
-                print("No players in the game. Cannot lift mortgage.\n")
-                return 1
             if game.state == "gameover" or game.state == "lobby":
                 print("The game has not started. Please start the game first.\n")
                 return 1
+            if len(game.players) == 0:
+                print("No players in the game. Cannot lift mortgage.\n")
+                return 1
             current_player.lift_mortgage()
-            
+
+        elif op1 == "negotiate":
+            if game.state == "gameover" or game.state == "lobby":
+                print("The game has not started. Please start the game first.\n")
+                return 1
+            current_player.negotiate(game)
+        
         else:
             print("Please enter a valid command\n")
             return

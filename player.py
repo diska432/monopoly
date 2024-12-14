@@ -78,8 +78,8 @@ class Player:
         if self.countMap["count_brown"] == 2:
             print("Chanel") 
             possibleUpgrade.append("Chanel")
-            print("Hugo Boss") 
-            possibleUpgrade.append("Hugo Boss")
+            print("Givenchy") 
+            possibleUpgrade.append("Givenchy")
         if self.countMap["count_pink"] == 3:
             print("Adidas")
             possibleUpgrade.append("Adidas")
@@ -102,17 +102,17 @@ class Player:
             print("Fanta")
             possibleUpgrade.append("Fanta")
         if self.countMap["count_red"] == 3:
-            print("Air Astana")
-            possibleUpgrade.append("Air Astana")
-            print("Fly Arystan")
-            possibleUpgrade.append("Fly Arystan")
+            print("Lufthansa")
+            possibleUpgrade.append("Lufthansa")
+            print("KLM")
+            possibleUpgrade.append("KLM")
             print("Scat")
             possibleUpgrade.append("Scat")
         if self.countMap["count_yellow"] == 3:
-            print("Im Cafe")
-            possibleUpgrade.append("Im Cafe")
-            print("Burger King")
-            possibleUpgrade.append("Burger King")
+            print("Hardee's")
+            possibleUpgrade.append("Hardee's")
+            print("Subway")
+            possibleUpgrade.append("Subway")
             print("KFC")
             possibleUpgrade.append("KFC")
         if self.countMap["count_green"] == 3:
@@ -160,35 +160,35 @@ class Player:
                                 cell.countStars += 1
                                 if cell.name == "Chanel":
                                     cell.rent = 10
-                                elif cell.name == "Hugo Boss":
+                                elif cell.name == "Givenchy":
                                     cell.rent = 20
                             
                             elif cell.countStars == 1:
                                 cell.countStars += 1
                                 if cell.name == "Chanel":
                                     cell.rent = 30
-                                elif cell.name == "Hugo Boss":
+                                elif cell.name == "Givenchy":
                                     cell.rent = 60
                             
                             elif cell.countStars == 2:
                                 cell.countStars += 1
                                 if cell.name == "Chanel":
                                     cell.rent = 90
-                                elif cell.name == "Hugo Boss":
+                                elif cell.name == "Givenchy":
                                     cell.rent = 180
                             
                             elif cell.countStars == 3:
                                 cell.countStars += 1
                                 if cell.name == "Chanel":
                                     cell.rent = 160
-                                elif cell.name == "Hugo Boss":
+                                elif cell.name == "Givenchy":
                                     cell.rent = 320
                             
                             elif cell.countStars == 4:
                                 cell.countStars += 1
                                 if cell.name == "Chanel":
                                     cell.rent = 250
-                                elif cell.name == "Hugo Boss":
+                                elif cell.name == "Givenchy":
                                     cell.rent = 450
                         else:
                             print("You don't have enough money to upgrade this cell")
@@ -562,7 +562,7 @@ class Player:
                                 company.rent = 10
                             elif company.countStars == 0:
                                 company.rent = 4
-                        elif company.name == "Hugo Boss":
+                        elif company.name == "Givenchy":
                             if company.countStars == 4:
                                 company.rent = 320
                             elif company.countStars == 3:
@@ -781,27 +781,49 @@ class Player:
         for company in self.owned_companies:
             if company.mortgage_count == 0:
                 #if mortgage gets to 0 then company goes back to bank
-                count_string = "count_" + company.color
-                self.countMap[count_string] -= 1
-                if company.color == "brown" or company.color == "blue":
-                    if self.countMap[count_string] == 1:
-                        self.decrease_rent_after_mortgage_ends(company.color)
-                else:
-                    if self.countMap[count_string] == 2:
-                        self.decrease_rent_after_mortgage_ends(company.color)
-                        
-                company.owner = None
-                company.rent = company.initial_rent
-                companies_after_removal = list(filter(lambda x: x.name != company.name, self.owned_companies))
-                self.owned_companies = companies_after_removal
+                self.remove_company(company)
 
             if company.mortgage_count >= 0:
                 company.mortgage_count -= 1
 
-    def decrease_rent_after_mortgage_ends(self, color):
+    def append_company(self, company):
+        if company.type == "company":
+            count_string = "count_" + company.color
+            self.countMap[count_string] -= 1
+            if company.color == "brown" or company.color == "blue":
+                if self.countMap[count_string] == 2:
+                    self.increase_rent_after_complete_color_set(company.color)
+            else:
+                if self.countMap[count_string] == 3:
+                    self.increase_rent_after_complete_color_set(company.color)
+        company.owner = self
+        self.owned_companies.append(company)
+    
+    def remove_company(self, company):
+        if company.type == "company":
+            count_string = "count_" + company.color
+            self.countMap[count_string] -= 1
+            if company.color == "brown" or company.color == "blue":
+                if self.countMap[count_string] == 1:
+                    self.decrease_rent_after_incomplete_color_set(company.color)
+            else:
+                if self.countMap[count_string] == 2:
+                    self.decrease_rent_after_incomplete_color_set(company.color)
+                    
+        company.owner = None
+        company.rent = company.initial_rent
+        companies_after_removal = list(filter(lambda x: x.name != company.name, self.owned_companies))
+        self.owned_companies = companies_after_removal
+
+    def decrease_rent_after_incomplete_color_set(self, color):
         companies = [x for x in self.owned_companies if x.color == color]
         for c in companies:
             c.rent /= 2
+    
+    def increase_rent_after_complete_color_set(self, color):
+        companies = [x for x in self.owned_companies if x.color == color]
+        for c in companies:
+            c.rent *= 2
 
     def lift_mortgage(self):
         input_name = input("Please enter the name of the company for which you want to lift the mortgage: ")
@@ -829,7 +851,6 @@ class Player:
         print("Invalid input")
         return 1
                 
-
     def landed_on_company(self, company, dice_roll):
         if company.owner is None:
             buy = input(f"Do you want to buy {company.name}? Type y for yes\n")
@@ -862,6 +883,7 @@ class Player:
 
                 else:
                     if self.balance >= company.rent:
+                        pay = input(f"You need to pay {company.rent}! Enter any key to pay\n")
                         self.balance -= company.rent
                         print(f"{self.name} paid {company.rent}")
                         return
@@ -900,6 +922,116 @@ class Player:
             self.downgrade_company()
         elif choice == "mortgage":
             self.mortgage_company()
+
+    def display_player(self):
+        print(f"Name: {self.name}")
+        print(f"Color: {self.color}")
+        print(f"Balance: {self.balance}")
+
+    def display_companies(self):
+        for c in self.owned_companies:
+            print(c)
+
+    def negotiate(self, game):
+        target_name = input("Please enter the name of the player you want to negotiate with: ")
+        target_player = self.find_player(game, target_name)
+        target_player.display_player()
+        target_player.display_companies()
+        target_companies = input(f"The companies you want from {target_name}: ")
+        target_cash = input(f"The cash you want from {target_name}: ")
+        your_companies = input(f"The companies you want to give: ")
+        your_cash = input(f"The cash you want to give: ")
+        balance_flag = self.verify_balances(target_player, target_cash, your_cash)
+        companies_flag = self.verify_companies(target_player, target_companies, your_companies)
+        if balance_flag == 2 or companies_flag == 2:
+            print("Invalid input")
+            return 1
+        tc = target_player.convert_to_companies(target_companies)
+        yc = self.convert_to_companies(your_companies)
+        self.send_deal(target_player, target_cash, tc, your_cash, yc)
+    
+    def convert_to_companies(self, company_names):
+        yc = company_names.split()
+        company_list = []
+        for name in yc:
+            for c in self.owned_companies:
+                if c.name == name:
+                    company_list.append(c)
+        return company_list
+    
+    def send_deal(self, target_player, target_cash, target_companies, your_cash, your_companies):
+        print(f"{target_player.name}, {self.name} sent you a deal!")
+        print(f"you give {target_cash} tenge")
+        print("you give the following list of companies")
+        for c in target_companies:
+            print(c)
+        print(f"you receive {your_cash} tenge")
+        print("you receive the following list of companies")
+        for c in your_companies:
+            print(c)
+
+        response = input("Please type a to accept or d to decline the offer")
+        if response != "a":
+            return
+        else:   
+            target_player.balance += int(your_cash)
+            target_player.balance -= int(target_cash)
+            self.balance += int(target_cash)
+            self.balance -= int(your_cash)
+
+            for c in target_companies:
+                self.append_company(c)
+                target_player.remove_company(c)
+            for c in your_companies:
+                self.remove_company(c)
+                target_player.append_company(c)
+
+
+    def find_player(self, game, name):
+        for p in game.players:
+            if p.name == name:
+                return p
+
+    def verify_balances(self, target_player, target_cash, your_cash):
+        # if (not target_cash.isnumeric() or not your_cash.isnumeric() or int(target_cash) > target_player.balance 
+        # or int(target_cash) < 0 or int(your_cash) > self.balance or int(your_cash) < 0):
+        if not target_cash.isnumeric():
+            print("Target cash is not numeric")
+            return 2
+        if not your_cash.isnumeric():
+            print("Target cash is not numeric")
+            return 2
+        if int(target_cash) > target_player.balance:
+            print("Target cash greater than balance")
+            return 2
+        if int(your_cash) > self.balance:
+            print("Your cash greater than balance")
+            return 2
+        if int(target_cash) < 0:
+            print("Target cash is negative")
+            return 2
+        if int(target_cash) > target_player.balance:
+            print("Your cash is negative")
+            return 2
+        return 1
+
+    def verify_companies(self, target_player, target_companies, your_companies):
+        tc = target_companies.split()
+        yc = your_companies.split()
+        for c in tc:
+            find_result = self.find_company(c, target_player)
+            return find_result
+        for c in yc:
+            find_result = self.find_company(c, self)
+            return find_result
+    
+    def find_company(self, name, target_player):
+        for c in target_player.owned_companies:
+            if c.name == name:
+                if c.countStars > 0:
+                    return 2
+                return 1
+        return 2
 
     def landed_on_shans(self,current_cell, game, dice_roll):
         arr = current_cell.getArr()

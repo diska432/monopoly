@@ -50,7 +50,7 @@ class Game(EventObserver):
         for key in current_player.upgradeMap.keys():
             current_player.upgradeMap[key] = False
         # dice_roll1 = self.roll_dice()
-        dice_roll1 = 5
+        dice_roll1 = 2
         # dice_roll2 = self.roll_dice()
         dice_roll2 = 2
         if current_player.in_jail_count > 0:
@@ -71,8 +71,8 @@ class Game(EventObserver):
                     else:
                         return
         
-        # dice_roll = dice_roll1 + dice_roll2
-        dice_roll = 4
+        dice_roll = dice_roll1 + dice_roll2
+        # dice_roll = 4
         print(f"{current_player.name} rolls {dice_roll}")
         if dice_roll1 == dice_roll2:
             print(f"{current_player.name} rolls a double")
@@ -101,7 +101,7 @@ class Game(EventObserver):
             current_player.pay_tax(current_cell, self)
 
         elif isinstance(current_cell, Shans):
-            current_player.landed_on_shans(current_cell, self)
+            current_player.landed_on_shans(current_cell, self, dice_roll)
 
         elif isinstance(current_cell, RandomCell):
             current_player.landed_on_random_cell(current_cell)

@@ -15,6 +15,9 @@ class Company(Cell):
         self.countStars = 0
         self.mortgage_count = -1
         self.initial_rent = rent
+        
+    def __str__(self):
+        return f"{self.name} (mortgage: {self.mortgage_count}, fee: {self.fee}, rent: {self.rent})"
 
 class ShansCard:
     def __init__(self, type_, amount = 0, destination = "", text = ""):
