@@ -1,5 +1,6 @@
 import game
 import string
+import math
 from random import randint
 from cell import Cell, Company
 
@@ -803,11 +804,11 @@ class Player:
                 if company.mortgage_count == -1:
                     print("Invalid input")
                     return 1
-                lift_mortgage_price = ceil((company.price / 2) * 1.1)
+                lift_mortgage_price = math.ceil((company.price / 2) * 1.1)
                 if self.balance >= lift_mortgage_price:
                     self.balance -= lift_mortgage_price
                     company.mortgage_count = -1
-                    company.rent = comapny.initial_rent
+                    company.rent = company.initial_rent
                     count_string = "count_" + company.color
                     if company.color == "brown" or company.color == "blue":
                         if self.countMap[count_string] == 2:
