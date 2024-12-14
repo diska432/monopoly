@@ -42,24 +42,30 @@ class Player:
             self.owned_companies.append(company)
             self.balance -= company.price
 
-            count_string = "count_" + company.color
-            if company.color == "brown" or company.color == "blue":
-                self.countMap[count_string] += 1
-                if self.countMap[count_string] == 2:
-                    for c in self.owned_companies:
-                        if c.color == company.color:
-                            c.rent *= 2
-            else:
-                self.countMap[count_string] += 1
-                if self.countMap[count_string] == 3:
-                    for c in self.owned_companies:
-                        if c.color == company.color:
-                            c.rent *= 2
+            count_string = 'count_' + company.color
+            if company.type == "company":
+                if company.color == "brown" or company.color == "blue":
+                    self.countMap[count_string] += 1
+                    if self.countMap[count_string] == 2:
+                        for c in self.owned_companies:
+                            if c.color == company.color:
+                                c.rent *= 2
+                else:
+                    self.countMap[count_string] += 1
+                    if self.countMap[count_string] == 3:
+                        for c in self.owned_companies:
+                            if c.color == company.color:
+                                c.rent *= 2
             if company.type == "car":
                 self.countMap["count_cars"] += 1
                 for c in self.owned_companies:
                     if c.type == "car":
-                        c.rent *= 2
+                        if self.countMap["count_cars"] == 2:
+                            c.rent = 50
+                        if self.countMap["count_cars"] == 3:
+                            c.rent = 100
+                        if self.countMap["count_cars"] == 4:
+                            c.rent = 200
             elif company.type == "videogame":
                 self.countMap["count_video_game"] += 1
 
@@ -824,18 +830,29 @@ class Player:
         return 1
                 
 
-    def landed_on_company(self, company):
+    def landed_on_company(self, company, dice_roll):
         if company.owner is None:
             buy = input(f"Do you want to buy {company.name}? Type y for yes\n")
             if buy == "y":
                 self.buy_company(company)
             #auction to be implemented in the future
         else:
-            rent = input(f"You need to pay rent in the amount of {company.rent}! Type y for yes\n")
-            while not rent == "y":
-                rent = input(f"You need to pay rent in the amount of {company.rent}! Type y for yes\n")
-            company.owner.balance += company.rent
-            self.balance -= company.rent
+            if company.owner != self:
+                if company.type == "videogame":
+                    pay_rent = 0
+                    if company.owner.countMap["count_video_game"] == 1:
+                        pay_rent = dice_roll * 4
+                    elif company.owner.countMap["count_video_game"] == 2:
+                        pay_rent = dice_roll * 10
+                    rent = input(f"You need to pay rent in the amount of {pay_rent}! Type y for yes\n")
+                    while not rent == "y":
+                        rent = input(f"You need to pay rent in the amount of {pay_rent}! Type y for yes\n")
+                else:
+                    rent = input(f"You need to pay rent in the amount of {company.rent}! Type y for yes\n")
+                    while not rent == "y":
+                        rent = input(f"You need to pay rent in the amount of {company.rent}! Type y for yes\n")
+                    company.owner.balance += company.rent
+                    self.balance -= company.rent
     
     def pay_tax(self, tax):
         pay = input(f"You need to pay {tax.amount}! Type y for yes\n")
@@ -848,7 +865,7 @@ class Player:
             #need to add logic for players to choose if they want to resign or sell company
             # self.resign()
 
-    def landed_on_shans(self,current_cell, game):
+    def landed_on_shans(self,current_cell, game, dice_roll):
         arr = current_cell.getArr()
         index = randint(0, len(arr) - 1)
         randomShans = arr[index]
@@ -866,7 +883,7 @@ class Player:
                 print(f"{self.name} passes START and earns 200 tenge")
                 self.balance += 200
             self.player_index = randomShans.destination
-            self.landed_on_company(destination_cell)
+            self.landed_on_company(destination_cell, dice_roll)
 
         elif randomShans.type_ == "jail":
             print(f"{self.name}{randomShans.text}")

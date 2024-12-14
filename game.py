@@ -74,7 +74,7 @@ class Game(EventObserver):
                         return
         
         # dice_roll = dice_roll1 + dice_roll2
-        dice_roll = 1
+        dice_roll = 4
         print(f"{current_player.name} rolls {dice_roll}")
         if dice_roll1 == dice_roll2:
             print(f"{current_player.name} rolls a double")
@@ -97,7 +97,7 @@ class Game(EventObserver):
         print(f"{current_player.name} lands on {current_cell.name}!")
         
         if isinstance(current_cell, Company):
-            current_player.landed_on_company(current_cell)
+            current_player.landed_on_company(current_cell, dice_roll)
 
         elif isinstance(current_cell, Tax):
             current_player.pay_tax(current_cell)
