@@ -38,9 +38,9 @@ class Game(EventObserver):
         current_player = self.players[self.current_player_index]
         current_player.update_mortgage()
         self.make_move(current_player)     
-        if current_player.doubles_rolled > 0 and current_player.in_jail_count > 0:
-            current_player.in_jail_count = 0
-            self.current_player_index = (self.current_player_index + 1) % len(self.players)
+        # if current_player.doubles_rolled > 0 and current_player.in_jail_count > 0:
+        #     current_player.in_jail_count = 0
+        #     self.current_player_index = (self.current_player_index + 1) % len(self.players)
         if not current_player.doubles_rolled > 0:
             self.current_player_index = (self.current_player_index + 1) % len(self.players)
            
@@ -49,6 +49,7 @@ class Game(EventObserver):
         #reset upgradeMap every time a player moves
         for key in current_player.upgradeMap.keys():
             current_player.upgradeMap[key] = False
+        #need to debug doubles rolled after jail
         # dice_roll1 = self.roll_dice()
         dice_roll1 = 2
         # dice_roll2 = self.roll_dice()
@@ -61,7 +62,7 @@ class Game(EventObserver):
             else:
                 if dice_roll1 == dice_roll2:
                     print(f"{current_player.name} rolls a double and gets out of jail")
-                    current_player.in_jail_count = 0
+                    current_player.in_jail_count = -1
                 else:
                     current_player.in_jail_count -= 1
                     print(f"{current_player.name} can't roll a double to get out of jail")
@@ -77,6 +78,9 @@ class Game(EventObserver):
         if dice_roll1 == dice_roll2:
             print(f"{current_player.name} rolls a double")
             current_player.doubles_rolled += 1
+            if current_player.in_jail_count == -1:
+                current_player.in_jail_count = 0
+                current_player.doubles_rolled = 0
             if current_player.doubles_rolled == 3:
                 print(f"{current_player.name} goes to jail for rolling 3 doubles in a row")
                 current_player.go_to_jail()
