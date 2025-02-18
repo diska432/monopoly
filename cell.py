@@ -4,9 +4,11 @@ class Cell:
         self.board_index = board_index
 
 class Company(Cell):
-    def __init__(self, name, board_index, price, type_, rent, fee = 0, color = ""): #type can be either company or video game(komunalka, vokzal)
+    def __init__(self, name, board_index, price, type_, rent, fee = 0, color = ""): 
         super().__init__(name, board_index)
         self.price = price
+
+        #type can be either company or video game
         self.type = type_
         self.owner = None
         self.rent = rent
@@ -27,9 +29,6 @@ class ShansCard:
         self.text = text
 
 class Shans(Cell):
-    #need to implement go to jail Shans cards
-    #also increasing rent by paying fees and adding a house/hotel
-    #and auction
     def __init__(self, board_index):
         super().__init__("Shans", board_index)
         self.arr = [
@@ -53,36 +52,36 @@ class Shans(Cell):
             ShansCard("pay", 40, "", "Insurance!"),
             ShansCard("pay", 140, "", "Insurance!"),
             ShansCard("pay", 120, "", "Insurance!"),
-            # ShansCard("move", 0, 1, "You take a casual stroll."),
-            # ShansCard("move", 0, 3, "You take a casual stroll."),
-            # ShansCard("move", 0, 5, "You take a casual stroll."),
-            # ShansCard("move", 0, 6, "You take a casual stroll."),
-            # ShansCard("move", 0, 8, "You take a casual stroll."),
-            # ShansCard("move", 0, 9, "You take a casual stroll."),
-            # ShansCard("move", 0, 11, "You take a casual stroll."),
-            # ShansCard("move", 0, 12, "You take a casual stroll."),
-            # ShansCard("move", 0, 13, "You take a casual stroll."),
-            # ShansCard("move", 0, 14, "You take a casual stroll."),
-            # ShansCard("move", 0, 15, "You take a casual stroll."),
-            # ShansCard("move", 0, 16, "You take a casual stroll."),
-            # ShansCard("move", 0, 18, "You take a casual stroll."),
-            # ShansCard("move", 0, 19, "You take a casual stroll."),
-            # ShansCard("move", 0, 21, "You take a casual stroll."),
-            # ShansCard("move", 0, 23, "You take a casual stroll."),
-            # ShansCard("move", 0, 24, "You take a casual stroll."),
-            # ShansCard("move", 0, 25, "You take a casual stroll."),
-            # ShansCard("move", 0, 26, "You take a casual stroll."),
-            # ShansCard("move", 0, 27, "You take a casual stroll."),
-            # ShansCard("move", 0, 28, "You take a casual stroll."),
-            # ShansCard("move", 0, 29, "You take a casual stroll."),
-            # ShansCard("move", 0, 31, "You take a casual stroll."),
-            # ShansCard("move", 0, 32, "You take a casual stroll."),
-            # ShansCard("move", 0, 34, "You take a casual stroll."),
-            # ShansCard("move", 0, 35, "You take a casual stroll."),
-            # ShansCard("move", 0, 37, "You take a casual stroll."),
-            # ShansCard("move", 0, 39, "You take a casual stroll."),
-            # ShansCard("jail", 0, "", " goes straight to jail for bank heist."),
-            # ShansCard("jail", 0, "", " goes straight to jail for a heinous crime."),
+            ShansCard("move", 0, 1, "You take a casual stroll."),
+            ShansCard("move", 0, 3, "You take a casual stroll."),
+            ShansCard("move", 0, 5, "You take a casual stroll."),
+            ShansCard("move", 0, 6, "You take a casual stroll."),
+            ShansCard("move", 0, 8, "You take a casual stroll."),
+            ShansCard("move", 0, 9, "You take a casual stroll."),
+            ShansCard("move", 0, 11, "You take a casual stroll."),
+            ShansCard("move", 0, 12, "You take a casual stroll."),
+            ShansCard("move", 0, 13, "You take a casual stroll."),
+            ShansCard("move", 0, 14, "You take a casual stroll."),
+            ShansCard("move", 0, 15, "You take a casual stroll."),
+            ShansCard("move", 0, 16, "You take a casual stroll."),
+            ShansCard("move", 0, 18, "You take a casual stroll."),
+            ShansCard("move", 0, 19, "You take a casual stroll."),
+            ShansCard("move", 0, 21, "You take a casual stroll."),
+            ShansCard("move", 0, 23, "You take a casual stroll."),
+            ShansCard("move", 0, 24, "You take a casual stroll."),
+            ShansCard("move", 0, 25, "You take a casual stroll."),
+            ShansCard("move", 0, 26, "You take a casual stroll."),
+            ShansCard("move", 0, 27, "You take a casual stroll."),
+            ShansCard("move", 0, 28, "You take a casual stroll."),
+            ShansCard("move", 0, 29, "You take a casual stroll."),
+            ShansCard("move", 0, 31, "You take a casual stroll."),
+            ShansCard("move", 0, 32, "You take a casual stroll."),
+            ShansCard("move", 0, 34, "You take a casual stroll."),
+            ShansCard("move", 0, 35, "You take a casual stroll."),
+            ShansCard("move", 0, 37, "You take a casual stroll."),
+            ShansCard("move", 0, 39, "You take a casual stroll."),
+            ShansCard("jail", 0, "", " goes straight to jail for bank heist."),
+            ShansCard("jail", 0, "", " goes straight to jail for a heinous crime."),
         ]
 
     def getArr(self) :

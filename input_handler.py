@@ -13,7 +13,7 @@ class InputHandler:
             back_to_lounge = input("Please enter any key to continue ")
             game.state = "empty"
             return 2
-        op1 = input("Type a command:\n start = start the game\n resign = resign from the game\n move = roll a dice and move\n add = add a  player to the lobby\n exit = exit lobby (only from lobby state) \n dp = display current player\n dc = display companies owned by player\n upgrade = upgrade company\n sell = sell a star of company\n mortgage = mortgage company to the bank\n lift = lift mortgage of a company\n negotiate = enter negotiations with a player\n")
+        op1 = input("\nType a command:\n start = start the game\n resign = resign from the game\n move = roll a dice and move\n add = add a  player to the lobby\n exit = exit lobby (only from lobby state) \n dp = display current player\n dc = display companies owned by player\n upgrade = upgrade company\n sell = sell a star of company\n mortgage = mortgage company to the bank\n lift = lift mortgage of a company\n negotiate = enter negotiations with a player\n")
         if op1 == "start":
             if game.state == "active":
                 print("You are already in a game. Please finish the current game before starting a new one.\n")

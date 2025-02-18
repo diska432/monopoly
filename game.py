@@ -49,11 +49,10 @@ class Game(EventObserver):
         #reset upgradeMap every time a player moves
         for key in current_player.upgradeMap.keys():
             current_player.upgradeMap[key] = False
-        #need to debug doubles rolled after jail
         # dice_roll1 = self.roll_dice()
-        dice_roll1 = 2
+        dice_roll1 = 3
         # dice_roll2 = self.roll_dice()
-        dice_roll2 = 2
+        dice_roll2 = 4
         if current_player.in_jail_count > 0:
             wish = input(f"{current_player.name}, do you want to pay 50 tenge to get out of jail? Type y for yes ")
             if wish == "y":
@@ -74,7 +73,7 @@ class Game(EventObserver):
         
         dice_roll = dice_roll1 + dice_roll2
         # dice_roll = 4
-        print(f"{current_player.name} rolls {dice_roll}")
+        print(f"{current_player.name} rolls {dice_roll1} : {dice_roll2}")
         if dice_roll1 == dice_roll2:
             print(f"{current_player.name} rolls a double")
             current_player.doubles_rolled += 1
