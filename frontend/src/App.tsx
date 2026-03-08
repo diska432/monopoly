@@ -1,5 +1,7 @@
 import React, { useState } from "react";
+import { AuthProvider, useAuth } from "./hooks/useAuth";
 import { useGameSocket } from "./hooks/useGameSocket";
+import AuthScreen from "./components/AuthScreen";
 import Lobby from "./components/Lobby";
 import GameBoard from "./components/GameBoard";
 import PlayerPanel from "./components/PlayerPanel";
@@ -9,22 +11,46 @@ import "./App.css";
 
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
-function App() {
+function GameApp() {
+  const { user, session, displayName, signOut, getAccessToken, loading } = useAuth();
   const [screen, setScreen] = useState<"home" | "game">("home");
   const [lobbyId, setLobbyId] = useState<string | null>(null);
   const [playerName, setPlayerName] = useState<string>("");
-  const [nameInput, setNameInput] = useState("");
   const [joinCode, setJoinCode] = useState("");
   const [error, setError] = useState("");
 
-  const { gameState, events, connected, sendAction } = useGameSocket(lobbyId, playerName);
+  const token = session?.access_token ?? null;
+  const { gameState, events, connected, sendAction } = useGameSocket(lobbyId, playerName, token);
+
+  if (loading) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner" />
+        <p>Loading...</p>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthScreen />;
+  }
 
   const createLobby = async () => {
-    if (!nameInput.trim()) { setError("Enter your name"); return; }
     try {
-      const res = await fetch(`${API_BASE}/api/create-lobby`);
+      const freshToken = await getAccessToken();
+      // #region agent log
+      fetch('http://127.0.0.1:7566/ingest/8db1c7ed-c122-43c4-b932-92b1335506ed',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b45bcf'},body:JSON.stringify({sessionId:'b45bcf',location:'App.tsx:createLobby',message:'createLobby called',data:{hasToken:!!freshToken,tokenLen:freshToken?.length||0,userEmail:user?.email||null,hasSession:!!session},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
+      // #endregion
+      if (!freshToken) { setError("Session expired. Please sign in again."); return; }
+      const res = await fetch(`${API_BASE}/api/create-lobby`, {
+        headers: { Authorization: `Bearer ${freshToken}` },
+      });
+      // #region agent log
+      fetch('http://127.0.0.1:7566/ingest/8db1c7ed-c122-43c4-b932-92b1335506ed',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b45bcf'},body:JSON.stringify({sessionId:'b45bcf',location:'App.tsx:createLobby.response',message:'API response',data:{status:res.status,ok:res.ok},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
+      // #endregion
+      if (res.status === 401) { setError("Session expired. Please sign in again."); return; }
       const data = await res.json();
-      setPlayerName(nameInput.trim());
+      setPlayerName(displayName);
       setLobbyId(data.lobby_id);
       setScreen("game");
       setError("");
@@ -34,13 +60,12 @@ function App() {
   };
 
   const joinLobby = async () => {
-    if (!nameInput.trim()) { setError("Enter your name"); return; }
     if (!joinCode.trim()) { setError("Enter lobby code"); return; }
     try {
       const res = await fetch(`${API_BASE}/api/lobby/${joinCode.trim()}/exists`);
       const data = await res.json();
       if (!data.exists) { setError("Lobby not found"); return; }
-      setPlayerName(nameInput.trim());
+      setPlayerName(displayName);
       setLobbyId(joinCode.trim());
       setScreen("game");
       setError("");
@@ -56,14 +81,9 @@ function App() {
           <h1 className="home-title">MONOPOLY</h1>
           <p className="home-subtitle">KZ Edition</p>
 
-          <div className="form-group">
-            <label>Your Name</label>
-            <input
-              value={nameInput}
-              onChange={(e) => setNameInput(e.target.value)}
-              placeholder="Enter nickname..."
-              maxLength={20}
-            />
+          <div className="user-info">
+            <span>Signed in as <strong>{displayName}</strong></span>
+            <button className="link-btn" onClick={signOut}>Sign out</button>
           </div>
 
           <div className="home-actions">
@@ -125,6 +145,14 @@ function App() {
         </div>
       )}
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <GameApp />
+    </AuthProvider>
   );
 }
 

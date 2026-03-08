@@ -236,3 +236,29 @@ body {
 .auction-participants { font-size: .75rem; color: var(--text-muted); }
 .text-muted { color: var(--text-muted); font-size: .85rem; }
 .log-entry.auction_started, .log-entry.auction_won { color: var(--accent); font-weight: 600; }
+
+/* ---- Auth ---- */
+.auth-form { display: flex; flex-direction: column; gap: 0; }
+.auth-form .form-group { margin-bottom: 16px; }
+.auth-form .btn-primary { margin-top: 8px; }
+.auth-switch { margin-top: 20px; font-size: .85rem; color: var(--text-muted); }
+.link-btn {
+  background: none; border: none; color: var(--accent); cursor: pointer;
+  font-size: inherit; font-weight: 600; text-decoration: underline;
+  padding: 0;
+}
+.link-btn:hover { color: var(--accent-hover); }
+.info-text { color: var(--success); margin-top: 8px; font-size: .85rem; }
+.btn-google {
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  width: 100%; padding: 12px 24px; border-radius: var(--radius);
+  background: #fff; color: #333; font-weight: 600; font-size: .9rem;
+  border: none; cursor: pointer; transition: all .15s;
+}
+.btn-google:hover { background: #f0f0f0; transform: translateY(-1px); }
+.google-icon { flex-shrink: 0; }
+.user-info {
+  display: flex; align-items: center; justify-content: center; gap: 12px;
+  margin-bottom: 24px; font-size: .9rem; color: var(--text-muted);
+}
+.user-info strong { color: var(--text); }
