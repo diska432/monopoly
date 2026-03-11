@@ -3,7 +3,12 @@ import { GameState, GameEvent, ServerMessage } from "../types/game";
 
 const WS_BASE = process.env.REACT_APP_WS_URL || "ws://localhost:8000";
 
-export function useGameSocket(lobbyId: string | null, playerName: string | null, token: string | null) {
+export function useGameSocket(
+  lobbyId: string | null,
+  playerName: string | null,
+  token: string | null,
+  roomPassword: string | null = null
+) {
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [events, setEvents] = useState<GameEvent[]>([]);
   const [connected, setConnected] = useState(false);
@@ -12,8 +17,11 @@ export function useGameSocket(lobbyId: string | null, playerName: string | null,
   useEffect(() => {
     if (!lobbyId || !playerName) return;
 
-    const tokenParam = token ? `?token=${encodeURIComponent(token)}` : "";
-    const ws = new WebSocket(`${WS_BASE}/ws/${lobbyId}/${playerName}${tokenParam}`);
+    const params = new URLSearchParams();
+    if (token) params.set("token", token);
+    if (roomPassword) params.set("room_password", roomPassword);
+    const query = params.toString();
+    const ws = new WebSocket(`${WS_BASE}/ws/${lobbyId}/${playerName}${query ? `?${query}` : ""}`);
     wsRef.current = ws;
 
     ws.onopen = () => setConnected(true);
@@ -34,7 +42,7 @@ export function useGameSocket(lobbyId: string | null, playerName: string | null,
       ws.close();
       wsRef.current = null;
     };
-  }, [lobbyId, playerName, token]);
+  }, [lobbyId, playerName, token, roomPassword]);
 
   const sendAction = useCallback(
     (action: string, data: Record<string, any> = {}) => {

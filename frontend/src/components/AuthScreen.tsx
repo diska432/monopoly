@@ -35,10 +35,15 @@ const AuthScreen: React.FC = () => {
   };
 
   return (
-    <div className="home-screen">
-      <div className="home-card">
-        <h1 className="home-title">MONOPOLY</h1>
-        <p className="home-subtitle">KZ Edition</p>
+    <div
+      className="auth-screen"
+      style={{ backgroundImage: `url(${process.env.PUBLIC_URL}/assets/bg-campfire.png)` }}
+    >
+      <div className="auth-card">
+        <h1 className="auth-title">LEIX IV</h1>
+        <p className="auth-subtitle">
+          {mode === "login" ? "Sign In" : "Create Account"}
+        </p>
 
         <form onSubmit={handleSubmit} className="auth-form">
           {mode === "register" && (
@@ -47,7 +52,7 @@ const AuthScreen: React.FC = () => {
               <input
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="Your name..."
+                placeholder="YOUR NAME..."
                 maxLength={30}
               />
             </div>
@@ -59,7 +64,7 @@ const AuthScreen: React.FC = () => {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
+              placeholder="YOU@EXAMPLE.COM"
               required
             />
           </div>
@@ -70,7 +75,7 @@ const AuthScreen: React.FC = () => {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder={mode === "register" ? "Min 6 characters" : "Your password"}
+              placeholder={mode === "register" ? "MIN 6 CHARACTERS" : "YOUR PASSWORD"}
               required
             />
           </div>
@@ -97,9 +102,23 @@ const AuthScreen: React.FC = () => {
 
         <p className="auth-switch">
           {mode === "login" ? (
-            <>Don't have an account? <button className="link-btn" onClick={() => { setMode("register"); setError(""); setInfo(""); }}>Register</button></>
+            <>Don't have an account?{" "}
+              <button
+                className="link-btn"
+                onClick={() => { setMode("register"); setError(""); setInfo(""); }}
+              >
+                Register
+              </button>
+            </>
           ) : (
-            <>Already have an account? <button className="link-btn" onClick={() => { setMode("login"); setError(""); setInfo(""); }}>Sign In</button></>
+            <>Already have an account?{" "}
+              <button
+                className="link-btn"
+                onClick={() => { setMode("login"); setError(""); setInfo(""); }}
+              >
+                Sign In
+              </button>
+            </>
           )}
         </p>
       </div>

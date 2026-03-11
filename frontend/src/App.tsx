@@ -1,26 +1,53 @@
-import React, { useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { AuthProvider, useAuth } from "./hooks/useAuth";
 import { useGameSocket } from "./hooks/useGameSocket";
 import AuthScreen from "./components/AuthScreen";
+import MainMenu from "./components/MainMenu";
+import HostJoinScreen from "./components/HostJoinScreen";
+import NewLobbyScreen from "./components/NewLobbyScreen";
+import { LobbySettings } from "./components/NewLobbyScreen";
+import JoinLobbyScreen from "./components/JoinLobbyScreen";
 import Lobby from "./components/Lobby";
 import GameBoard from "./components/GameBoard";
 import PlayerPanel from "./components/PlayerPanel";
 import PlayersBar from "./components/PlayersBar";
 import EventLog from "./components/EventLog";
+import { RoomInfo } from "./types/game";
 import "./App.css";
 
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
+type Screen = "main-menu" | "host-join" | "new-lobby" | "join-lobby" | "game";
+
 function GameApp() {
   const { user, session, displayName, signOut, getAccessToken, loading } = useAuth();
-  const [screen, setScreen] = useState<"home" | "game">("home");
+  const [screen, setScreen] = useState<Screen>("main-menu");
   const [lobbyId, setLobbyId] = useState<string | null>(null);
   const [playerName, setPlayerName] = useState<string>("");
-  const [joinCode, setJoinCode] = useState("");
+  const [roomPassword, setRoomPassword] = useState<string>("");
+  const [rooms, setRooms] = useState<RoomInfo[]>([]);
   const [error, setError] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [joining, setJoining] = useState(false);
 
   const token = session?.access_token ?? null;
-  const { gameState, events, connected, sendAction } = useGameSocket(lobbyId, playerName, token);
+  const { gameState, events, connected, sendAction } = useGameSocket(lobbyId, playerName, token, roomPassword);
+
+  const fetchRooms = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/lobbies`);
+      const data = await res.json();
+      setRooms(data.rooms ?? []);
+    } catch {
+      setError("Could not load rooms.");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (screen === "join-lobby" && user) {
+      fetchRooms();
+    }
+  }, [screen, user, fetchRooms]);
 
   if (loading) {
     return (
@@ -35,81 +62,131 @@ function GameApp() {
     return <AuthScreen />;
   }
 
-  const createLobby = async () => {
+  const goBack = (to: Screen) => {
+    setError("");
+    setScreen(to);
+  };
+
+  const handleCreateLobby = async (settings: LobbySettings) => {
+    setCreating(true);
+    setError("");
     try {
       const freshToken = await getAccessToken();
-      // #region agent log
-      fetch('http://127.0.0.1:7566/ingest/8db1c7ed-c122-43c4-b932-92b1335506ed',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b45bcf'},body:JSON.stringify({sessionId:'b45bcf',location:'App.tsx:createLobby',message:'createLobby called',data:{hasToken:!!freshToken,tokenLen:freshToken?.length||0,userEmail:user?.email||null,hasSession:!!session},timestamp:Date.now(),hypothesisId:'H2'})}).catch(()=>{});
-      // #endregion
-      if (!freshToken) { setError("Session expired. Please sign in again."); return; }
-      const res = await fetch(`${API_BASE}/api/create-lobby`, {
-        headers: { Authorization: `Bearer ${freshToken}` },
+      if (!freshToken) {
+        setError("Session expired. Please sign in again.");
+        setCreating(false);
+        return;
+      }
+      const res = await fetch(`${API_BASE}/api/lobbies`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${freshToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          max_players: settings.maxPlayers,
+          casino: settings.casino,
+          teams: settings.teams,
+          timer: settings.timer,
+          is_private: settings.isPrivate,
+          password: settings.password,
+        }),
       });
-      // #region agent log
-      fetch('http://127.0.0.1:7566/ingest/8db1c7ed-c122-43c4-b932-92b1335506ed',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'b45bcf'},body:JSON.stringify({sessionId:'b45bcf',location:'App.tsx:createLobby.response',message:'API response',data:{status:res.status,ok:res.ok},timestamp:Date.now(),hypothesisId:'H1'})}).catch(()=>{});
-      // #endregion
-      if (res.status === 401) { setError("Session expired. Please sign in again."); return; }
       const data = await res.json();
+      if (!res.ok) {
+        setError(data.detail || "Could not create room.");
+        setCreating(false);
+        return;
+      }
       setPlayerName(displayName);
-      setLobbyId(data.lobby_id);
+      setRoomPassword(settings.isPrivate ? settings.password : "");
+      setLobbyId(data.room.id);
       setScreen("game");
-      setError("");
     } catch {
       setError("Could not connect to server.");
     }
+    setCreating(false);
   };
 
-  const joinLobby = async () => {
-    if (!joinCode.trim()) { setError("Enter lobby code"); return; }
+  const handleJoinLobby = async (room: RoomInfo, password = "") => {
+    setJoining(true);
+    setError("");
     try {
-      const res = await fetch(`${API_BASE}/api/lobby/${joinCode.trim()}/exists`);
+      const freshToken = await getAccessToken();
+      if (!freshToken) {
+        setError("Session expired. Please sign in again.");
+        setJoining(false);
+        return;
+      }
+      const res = await fetch(`${API_BASE}/api/lobbies/${room.id}/join`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${freshToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ password }),
+      });
       const data = await res.json();
-      if (!data.exists) { setError("Lobby not found"); return; }
-      setPlayerName(displayName);
-      setLobbyId(joinCode.trim());
+      if (!res.ok) {
+        setError(data.detail || "Could not join room.");
+        setJoining(false);
+        return;
+      }
+      setPlayerName(data.player_name || displayName);
+      setRoomPassword(password);
+      setLobbyId(room.id);
       setScreen("game");
-      setError("");
     } catch {
       setError("Could not connect to server.");
     }
+    setJoining(false);
   };
 
-  if (screen === "home") {
+  if (screen === "main-menu") {
     return (
-      <div className="home-screen">
-        <div className="home-card">
-          <h1 className="home-title">MONOPOLY</h1>
-          <p className="home-subtitle">KZ Edition</p>
-
-          <div className="user-info">
-            <span>Signed in as <strong>{displayName}</strong></span>
-            <button className="link-btn" onClick={signOut}>Sign out</button>
-          </div>
-
-          <div className="home-actions">
-            <button className="btn-primary" onClick={createLobby}>
-              Create Game
-            </button>
-            <div className="divider"><span>or</span></div>
-            <div className="join-row">
-              <input
-                value={joinCode}
-                onChange={(e) => setJoinCode(e.target.value.toUpperCase())}
-                placeholder="Lobby Code"
-                maxLength={6}
-              />
-              <button className="btn-secondary" onClick={joinLobby}>
-                Join
-              </button>
-            </div>
-          </div>
-
-          {error && <p className="error-text">{error}</p>}
-        </div>
-      </div>
+      <MainMenu
+        displayName={displayName}
+        onStartGame={() => { setError(""); setScreen("host-join"); }}
+        onLeave={signOut}
+      />
     );
   }
 
+  if (screen === "host-join") {
+    return (
+      <HostJoinScreen
+        onHost={() => { setError(""); setScreen("new-lobby"); }}
+        onJoin={() => { setError(""); setScreen("join-lobby"); }}
+        onBack={() => goBack("main-menu")}
+      />
+    );
+  }
+
+  if (screen === "new-lobby") {
+    return (
+      <NewLobbyScreen
+        onCreateLobby={handleCreateLobby}
+        onBack={() => goBack("host-join")}
+        error={error}
+        creating={creating}
+      />
+    );
+  }
+
+  if (screen === "join-lobby") {
+    return (
+      <JoinLobbyScreen
+        rooms={rooms}
+        onJoin={handleJoinLobby}
+        onRefresh={fetchRooms}
+        onBack={() => goBack("host-join")}
+        error={error}
+        joining={joining}
+      />
+    );
+  }
+
+  // screen === "game"
   if (!gameState) {
     return (
       <div className="loading-screen">

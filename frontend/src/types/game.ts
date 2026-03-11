@@ -52,6 +52,20 @@ export interface AuctionState {
   participants: string[];
 }
 
+export interface RoomInfo {
+  id: string;
+  name: string;
+  host_name: string;
+  visibility: "public" | "private";
+  max_players: number;
+  casino: boolean;
+  teams: boolean;
+  timer: boolean;
+  state: "lobby" | "active" | "gameover";
+  player_count: number;
+  players: string[];
+}
+
 export interface GameState {
   lobby_id: string;
   state: "lobby" | "active" | "gameover";
@@ -63,6 +77,7 @@ export interface GameState {
   pending_player: string | null;
   pending_company: string | null;
   auction: AuctionState | null;
+  room?: RoomInfo;
 }
 
 export interface GameEvent {

@@ -2,14 +2,17 @@
 FastAPI WebSocket server with lobby/room management and Supabase JWT auth.
 """
 from __future__ import annotations
+import hashlib
 import json
 import random
 import string
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, Query
+from dataclasses import dataclass
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, Field
 
 from .config import FRONTEND_URL, SUPABASE_JWT_SECRET
-from .auth import JWTBearer, verify_token, verify_ws_token
+from .auth import JWTBearer, verify_ws_token
 from .engine.game_engine import GameEngine
 
 app = FastAPI(title="Monopoly Server")
@@ -26,21 +29,117 @@ app.add_middleware(
 jwt_scheme = JWTBearer()
 
 
+class CreateLobbyRequest(BaseModel):
+    max_players: int = Field(default=6, ge=2, le=6)
+    casino: bool = False
+    teams: bool = False
+    timer: bool = False
+    is_private: bool = False
+    password: str = Field(default="", max_length=64)
+
+
+class JoinLobbyRequest(BaseModel):
+    password: str = Field(default="", max_length=64)
+
+
+@dataclass
+class LobbyRoom:
+    lobby_id: str
+    host_name: str
+    name: str
+    visibility: str
+    password_hash: str | None
+    max_players: int
+    casino: bool
+    teams: bool
+    timer: bool
+    game: GameEngine
+
+    def to_summary(self) -> dict:
+        return {
+            "id": self.lobby_id,
+            "name": self.name,
+            "host_name": self.host_name,
+            "visibility": self.visibility,
+            "max_players": self.max_players,
+            "casino": self.casino,
+            "teams": self.teams,
+            "timer": self.timer,
+            "state": self.game.state,
+            "player_count": len(self.game.players),
+            "players": [p.name for p in self.game.players],
+        }
+
+
+def _hash_password(password: str) -> str:
+    return hashlib.sha256(password.encode("utf-8")).hexdigest()
+
+
 class ConnectionManager:
     def __init__(self):
-        self.games: dict[str, GameEngine] = {}
+        self.rooms: dict[str, LobbyRoom] = {}
         self.connections: dict[str, dict[str, WebSocket]] = {}
 
-    def create_lobby(self) -> str:
+    def create_lobby(
+        self,
+        *,
+        host_name: str,
+        max_players: int = 6,
+        casino: bool = False,
+        teams: bool = False,
+        timer: bool = False,
+        is_private: bool = False,
+        password: str = "",
+    ) -> LobbyRoom:
         lobby_id = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
-        while lobby_id in self.games:
+        while lobby_id in self.rooms:
             lobby_id = "".join(random.choices(string.ascii_uppercase + string.digits, k=6))
-        self.games[lobby_id] = GameEngine(lobby_id)
+        room = LobbyRoom(
+            lobby_id=lobby_id,
+            host_name=host_name,
+            name=f"{host_name.upper()}'S LOBBY",
+            visibility="private" if is_private else "public",
+            password_hash=_hash_password(password) if is_private and password else None,
+            max_players=max_players,
+            casino=casino,
+            teams=teams,
+            timer=timer,
+            game=GameEngine(lobby_id),
+        )
+        self.rooms[lobby_id] = room
         self.connections[lobby_id] = {}
-        return lobby_id
+        return room
 
     def get_game(self, lobby_id: str) -> GameEngine | None:
-        return self.games.get(lobby_id)
+        room = self.rooms.get(lobby_id)
+        return room.game if room else None
+
+    def get_room(self, lobby_id: str) -> LobbyRoom | None:
+        return self.rooms.get(lobby_id)
+
+    def list_rooms(self, visibility: str | None = None) -> list[dict]:
+        rooms = []
+        for room in self.rooms.values():
+            if room.game.state != "lobby":
+                continue
+            if len(room.game.players) >= room.max_players:
+                continue
+            if visibility and room.visibility != visibility:
+                continue
+            rooms.append(room.to_summary())
+        return rooms
+
+    def can_join_room(self, room: LobbyRoom, password: str = "") -> tuple[bool, str | None]:
+        if room.game.state != "lobby":
+            return False, "Game already started."
+        if len(room.game.players) >= room.max_players:
+            return False, "Room is full."
+        if room.visibility == "private":
+            if not room.password_hash:
+                return False, "Room password is not configured."
+            if _hash_password(password or "") != room.password_hash:
+                return False, "Incorrect password."
+        return True, None
 
     def add_connection(self, lobby_id: str, player_name: str, ws: WebSocket):
         if lobby_id not in self.connections:
@@ -86,6 +185,12 @@ def _extract_display_name(payload: dict) -> str:
     return payload.get("sub", "Player")[:16]
 
 
+def _serialize_state(room: LobbyRoom) -> dict:
+    state = room.game.get_full_state()
+    state["room"] = room.to_summary()
+    return state
+
+
 # ---- Protected HTTP endpoints ----
 
 @app.get("/api/me")
@@ -97,17 +202,52 @@ async def get_me(payload: dict = Depends(jwt_scheme)):
     }
 
 
+@app.post("/api/lobbies")
+async def create_lobby(body: CreateLobbyRequest, payload: dict = Depends(jwt_scheme)):
+    host_name = _extract_display_name(payload)
+    if body.is_private and not body.password.strip():
+        raise HTTPException(status_code=400, detail="Password is required for private rooms.")
+    room = manager.create_lobby(
+        host_name=host_name,
+        max_players=body.max_players,
+        casino=body.casino,
+        teams=body.teams,
+        timer=body.timer,
+        is_private=body.is_private,
+        password=body.password.strip(),
+    )
+    return {"room": room.to_summary()}
+
+
 @app.get("/api/create-lobby")
-async def create_lobby(payload: dict = Depends(jwt_scheme)):
-    lobby_id = manager.create_lobby()
-    return {"lobby_id": lobby_id}
+async def create_lobby_legacy(payload: dict = Depends(jwt_scheme)):
+    room = manager.create_lobby(host_name=_extract_display_name(payload))
+    return {"lobby_id": room.lobby_id, "room": room.to_summary()}
+
+
+@app.get("/api/lobbies")
+async def list_lobbies(visibility: str | None = Query(default=None)):
+    if visibility not in (None, "public", "private"):
+        raise HTTPException(status_code=400, detail="Invalid visibility.")
+    return {"rooms": manager.list_rooms(visibility)}
+
+
+@app.post("/api/lobbies/{lobby_id}/join")
+async def join_lobby(lobby_id: str, body: JoinLobbyRequest, payload: dict = Depends(jwt_scheme)):
+    room = manager.get_room(lobby_id)
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found.")
+    can_join, reason = manager.can_join_room(room, body.password.strip())
+    if not can_join:
+        raise HTTPException(status_code=403, detail=reason or "Cannot join room.")
+    return {"room": room.to_summary(), "player_name": _extract_display_name(payload)}
 
 
 @app.get("/api/lobby/{lobby_id}/exists")
 async def lobby_exists(lobby_id: str):
-    game = manager.get_game(lobby_id)
-    if game:
-        return {"exists": True, "state": game.state, "players": [p.name for p in game.players]}
+    room = manager.get_room(lobby_id)
+    if room:
+        return {"exists": True, "state": room.game.state, "players": [p.name for p in room.game.players]}
     return {"exists": False}
 
 
@@ -119,6 +259,7 @@ async def websocket_endpoint(
     lobby_id: str,
     player_name: str,
     token: str = Query(default=""),
+    room_password: str = Query(default=""),
 ):
     if SUPABASE_JWT_SECRET:
         payload = await verify_ws_token(websocket, token)
@@ -138,10 +279,18 @@ async def websocket_endpoint(
     else:
         payload = None
 
-    game = manager.get_game(lobby_id)
-    if not game:
+    room = manager.get_room(lobby_id)
+    if not room:
         await websocket.close(code=4004, reason="Lobby not found")
         return
+    game = room.game
+
+    existing_player = game._get_player(player_name)
+    if not existing_player:
+        can_join, reason = manager.can_join_room(room, room_password)
+        if not can_join:
+            await websocket.close(code=4005, reason=reason or "Cannot join room")
+            return
 
     await websocket.accept()
 
@@ -152,9 +301,9 @@ async def websocket_endpoint(
 
     if game.state == "lobby" and not game._get_player(player_name):
         events = game.handle_action(player_name, "add_player", {"name": player_name})
-        await manager.broadcast(lobby_id, {"type": "events", "events": events, "state": game.get_full_state()})
+        await manager.broadcast(lobby_id, {"type": "events", "events": events, "state": _serialize_state(room)})
 
-    await websocket.send_json({"type": "full_state", "state": game.get_full_state()})
+    await websocket.send_json({"type": "full_state", "state": _serialize_state(room)})
 
     try:
         while True:
@@ -169,7 +318,7 @@ async def websocket_endpoint(
             data = msg.get("data", {})
             events = game.handle_action(player_name, action, data)
 
-            response = {"type": "events", "events": events, "state": game.get_full_state()}
+            response = {"type": "events", "events": events, "state": _serialize_state(room)}
             await manager.broadcast(lobby_id, response)
 
     except WebSocketDisconnect:
@@ -177,5 +326,5 @@ async def websocket_endpoint(
         await manager.broadcast(lobby_id, {
             "type": "player_disconnected",
             "player": player_name,
-            "state": game.get_full_state(),
+            "state": _serialize_state(room),
         })
