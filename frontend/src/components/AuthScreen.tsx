@@ -1,9 +1,12 @@
 import React, { useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 
 const AuthScreen: React.FC = () => {
   const { signIn, signUp, signInWithGoogle } = useAuth();
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const location = useLocation();
+  const navigate = useNavigate();
+  const mode: "login" | "register" = location.pathname.endsWith("/register") ? "register" : "login";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [name, setName] = useState("");
@@ -23,7 +26,7 @@ const AuthScreen: React.FC = () => {
       const result = await signUp(email.trim(), password, name.trim());
       if (result === "NEEDS_CONFIRM") {
         setInfo("Check your email to confirm your account, then sign in.");
-        setMode("login");
+        navigate("/auth/login", { replace: true });
       } else if (result) {
         setError(result);
       }
@@ -105,7 +108,7 @@ const AuthScreen: React.FC = () => {
             <>Don't have an account?{" "}
               <button
                 className="link-btn"
-                onClick={() => { setMode("register"); setError(""); setInfo(""); }}
+                onClick={() => { navigate("/auth/register"); setError(""); setInfo(""); }}
               >
                 Register
               </button>
@@ -114,7 +117,7 @@ const AuthScreen: React.FC = () => {
             <>Already have an account?{" "}
               <button
                 className="link-btn"
-                onClick={() => { setMode("login"); setError(""); setInfo(""); }}
+                onClick={() => { navigate("/auth/login"); setError(""); setInfo(""); }}
               >
                 Sign In
               </button>

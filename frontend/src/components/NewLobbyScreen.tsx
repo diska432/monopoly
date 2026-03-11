@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 interface NewLobbyScreenProps {
   onCreateLobby: (settings: LobbySettings) => void;
@@ -17,15 +17,41 @@ export interface LobbySettings {
 }
 
 const NewLobbyScreen: React.FC<NewLobbyScreenProps> = ({ onCreateLobby, onBack, error, creating }) => {
-  const [maxPlayers, setMaxPlayers] = useState(6);
-  const [casino, setCasino] = useState(false);
-  const [teams, setTeams] = useState(false);
-  const [timer, setTimer] = useState(false);
-  const [isPrivate, setIsPrivate] = useState(false);
-  const [password, setPassword] = useState("");
+  const [maxPlayers, setMaxPlayers] = useState(() => {
+    const draft = sessionStorage.getItem("new-lobby-draft");
+    return draft ? JSON.parse(draft).maxPlayers ?? 6 : 6;
+  });
+  const [casino, setCasino] = useState(() => {
+    const draft = sessionStorage.getItem("new-lobby-draft");
+    return draft ? JSON.parse(draft).casino ?? false : false;
+  });
+  const [teams, setTeams] = useState(() => {
+    const draft = sessionStorage.getItem("new-lobby-draft");
+    return draft ? JSON.parse(draft).teams ?? false : false;
+  });
+  const [timer, setTimer] = useState(() => {
+    const draft = sessionStorage.getItem("new-lobby-draft");
+    return draft ? JSON.parse(draft).timer ?? false : false;
+  });
+  const [isPrivate, setIsPrivate] = useState(() => {
+    const draft = sessionStorage.getItem("new-lobby-draft");
+    return draft ? JSON.parse(draft).isPrivate ?? false : false;
+  });
+  const [password, setPassword] = useState(() => {
+    const draft = sessionStorage.getItem("new-lobby-draft");
+    return draft ? JSON.parse(draft).password ?? "" : "";
+  });
+
+  useEffect(() => {
+    sessionStorage.setItem(
+      "new-lobby-draft",
+      JSON.stringify({ maxPlayers, casino, teams, timer, isPrivate, password })
+    );
+  }, [maxPlayers, casino, teams, timer, isPrivate, password]);
 
   const handleCreate = () => {
     if (isPrivate && !password.trim()) return;
+    sessionStorage.removeItem("new-lobby-draft");
     onCreateLobby({ maxPlayers, casino, teams, timer, isPrivate, password });
   };
 

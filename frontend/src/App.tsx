@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { Navigate, Route, Routes, useLocation, useNavigate, useParams } from "react-router-dom";
 import { AuthProvider, useAuth } from "./hooks/useAuth";
 import { useGameSocket } from "./hooks/useGameSocket";
 import AuthScreen from "./components/AuthScreen";
@@ -17,21 +18,81 @@ import "./App.css";
 
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
 
-type Screen = "main-menu" | "host-join" | "new-lobby" | "join-lobby" | "game";
+function getStoredRoomPassword(roomId: string): string {
+  return sessionStorage.getItem(`room-password:${roomId}`) ?? "";
+}
+
+function setStoredRoomPassword(roomId: string, password: string) {
+  if (password.trim()) {
+    sessionStorage.setItem(`room-password:${roomId}`, password);
+  } else {
+    sessionStorage.removeItem(`room-password:${roomId}`);
+  }
+}
+
+function RoomPage({ displayName, token }: { displayName: string; token: string | null }) {
+  const navigate = useNavigate();
+  const { roomId } = useParams<{ roomId: string }>();
+  const roomPassword = roomId ? getStoredRoomPassword(roomId) : "";
+  const { gameState, events, connected, sendAction } = useGameSocket(
+    roomId ?? null,
+    displayName,
+    token,
+    roomPassword
+  );
+
+  if (!roomId) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (!gameState) {
+    return (
+      <div className="loading-screen">
+        <div className="spinner" />
+        <p>{connected ? "Loading game..." : "Connecting..."}</p>
+      </div>
+    );
+  }
+
+  if (gameState.state === "lobby") {
+    return <Lobby gameState={gameState} playerName={displayName} sendAction={sendAction} />;
+  }
+
+  return (
+    <div className="game-screen">
+      <PlayersBar gameState={gameState} playerName={displayName} />
+      <div className="game-main">
+        <GameBoard gameState={gameState} />
+        <div className="game-sidebar">
+          <PlayerPanel gameState={gameState} playerName={displayName} sendAction={sendAction} />
+          <EventLog events={events} />
+        </div>
+      </div>
+      {gameState.state === "gameover" && (
+        <div className="gameover-overlay">
+          <div className="gameover-card">
+            <h2>Game Over!</h2>
+            <p>Winner: {gameState.players[0]?.name || "Nobody"}</p>
+            <button className="btn-primary" onClick={() => navigate("/", { replace: true })}>
+              New Game
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function GameApp() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const { user, session, displayName, signOut, getAccessToken, loading } = useAuth();
-  const [screen, setScreen] = useState<Screen>("main-menu");
-  const [lobbyId, setLobbyId] = useState<string | null>(null);
-  const [playerName, setPlayerName] = useState<string>("");
-  const [roomPassword, setRoomPassword] = useState<string>("");
   const [rooms, setRooms] = useState<RoomInfo[]>([]);
   const [error, setError] = useState("");
   const [creating, setCreating] = useState(false);
   const [joining, setJoining] = useState(false);
 
   const token = session?.access_token ?? null;
-  const { gameState, events, connected, sendAction } = useGameSocket(lobbyId, playerName, token, roomPassword);
 
   const fetchRooms = useCallback(async () => {
     try {
@@ -44,10 +105,10 @@ function GameApp() {
   }, []);
 
   useEffect(() => {
-    if (screen === "join-lobby" && user) {
+    if (user && location.pathname === "/play/join") {
       fetchRooms();
     }
-  }, [screen, user, fetchRooms]);
+  }, [user, location.pathname, fetchRooms]);
 
   if (loading) {
     return (
@@ -59,13 +120,14 @@ function GameApp() {
   }
 
   if (!user) {
-    return <AuthScreen />;
+    return (
+      <Routes>
+        <Route path="/auth/login" element={<AuthScreen />} />
+        <Route path="/auth/register" element={<AuthScreen />} />
+        <Route path="*" element={<Navigate to="/auth/login" replace />} />
+      </Routes>
+    );
   }
-
-  const goBack = (to: Screen) => {
-    setError("");
-    setScreen(to);
-  };
 
   const handleCreateLobby = async (settings: LobbySettings) => {
     setCreating(true);
@@ -98,10 +160,8 @@ function GameApp() {
         setCreating(false);
         return;
       }
-      setPlayerName(displayName);
-      setRoomPassword(settings.isPrivate ? settings.password : "");
-      setLobbyId(data.room.id);
-      setScreen("game");
+      setStoredRoomPassword(data.room.id, settings.isPrivate ? settings.password : "");
+      navigate(`/rooms/${data.room.id}`, { replace: true });
     } catch {
       setError("Could not connect to server.");
     }
@@ -132,96 +192,76 @@ function GameApp() {
         setJoining(false);
         return;
       }
-      setPlayerName(data.player_name || displayName);
-      setRoomPassword(password);
-      setLobbyId(room.id);
-      setScreen("game");
+      setStoredRoomPassword(room.id, password);
+      navigate(`/rooms/${room.id}`, { replace: true });
     } catch {
       setError("Could not connect to server.");
     }
     setJoining(false);
   };
 
-  if (screen === "main-menu") {
-    return (
-      <MainMenu
-        displayName={displayName}
-        onStartGame={() => { setError(""); setScreen("host-join"); }}
-        onLeave={signOut}
-      />
-    );
-  }
-
-  if (screen === "host-join") {
-    return (
-      <HostJoinScreen
-        onHost={() => { setError(""); setScreen("new-lobby"); }}
-        onJoin={() => { setError(""); setScreen("join-lobby"); }}
-        onBack={() => goBack("main-menu")}
-      />
-    );
-  }
-
-  if (screen === "new-lobby") {
-    return (
-      <NewLobbyScreen
-        onCreateLobby={handleCreateLobby}
-        onBack={() => goBack("host-join")}
-        error={error}
-        creating={creating}
-      />
-    );
-  }
-
-  if (screen === "join-lobby") {
-    return (
-      <JoinLobbyScreen
-        rooms={rooms}
-        onJoin={handleJoinLobby}
-        onRefresh={fetchRooms}
-        onBack={() => goBack("host-join")}
-        error={error}
-        joining={joining}
-      />
-    );
-  }
-
-  // screen === "game"
-  if (!gameState) {
-    return (
-      <div className="loading-screen">
-        <div className="spinner" />
-        <p>{connected ? "Loading game..." : "Connecting..."}</p>
-      </div>
-    );
-  }
-
-  if (gameState.state === "lobby") {
-    return <Lobby gameState={gameState} playerName={playerName} sendAction={sendAction} />;
-  }
-
   return (
-    <div className="game-screen">
-      <PlayersBar gameState={gameState} playerName={playerName} />
-      <div className="game-main">
-        <GameBoard gameState={gameState} />
-        <div className="game-sidebar">
-          <PlayerPanel gameState={gameState} playerName={playerName} sendAction={sendAction} />
-          <EventLog events={events} />
-        </div>
-      </div>
-      {gameState.state === "gameover" && (
-        <div className="gameover-overlay">
-          <div className="gameover-card">
-            <h2>Game Over!</h2>
-            <p>Winner: {gameState.players[0]?.name || "Nobody"}</p>
-            <button className="btn-primary" onClick={() => window.location.reload()}>
-              New Game
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+    <Routes>
+      <Route path="/auth/*" element={<Navigate to="/" replace />} />
+      <Route
+        path="/"
+        element={
+          <MainMenu
+            displayName={displayName}
+            onStartGame={() => {
+              setError("");
+              navigate("/play");
+            }}
+            onLeave={async () => {
+              await signOut();
+              navigate("/auth/login", { replace: true });
+            }}
+          />
+        }
+      />
+      <Route
+        path="/play"
+        element={
+          <HostJoinScreen
+            onHost={() => {
+              setError("");
+              navigate("/play/host");
+            }}
+            onJoin={() => {
+              setError("");
+              navigate("/play/join?tab=public");
+            }}
+            onBack={() => navigate("/")}
+          />
+        }
+      />
+      <Route
+        path="/play/host"
+        element={
+          <NewLobbyScreen
+            onCreateLobby={handleCreateLobby}
+            onBack={() => navigate("/play")}
+            error={error}
+            creating={creating}
+          />
+        }
+      />
+      <Route
+        path="/play/join"
+        element={
+          <JoinLobbyScreen
+            rooms={rooms}
+            onJoin={handleJoinLobby}
+            onRefresh={fetchRooms}
+            onBack={() => navigate("/play")}
+            error={error}
+            joining={joining}
+          />
+        }
+      />
+      <Route path="/rooms/:roomId" element={<RoomPage displayName={displayName} token={token} />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
   );
 }
 

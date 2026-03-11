@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { RoomInfo } from "../types/game";
 
 interface JoinLobbyScreenProps {
@@ -18,8 +19,9 @@ const JoinLobbyScreen: React.FC<JoinLobbyScreenProps> = ({
   error,
   joining,
 }) => {
-  const [tab, setTab] = useState<"public" | "private">("public");
-  const [search, setSearch] = useState("");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tab = searchParams.get("tab") === "private" ? "private" : "public";
+  const search = searchParams.get("q") ?? "";
   const [selectedPrivateRoomId, setSelectedPrivateRoomId] = useState<string | null>(null);
   const [password, setPassword] = useState("");
 
@@ -44,13 +46,21 @@ const JoinLobbyScreen: React.FC<JoinLobbyScreenProps> = ({
           <div className="join-lobby-screen__tabs">
             <button
               className={`join-lobby-screen__tab ${tab === "public" ? "active" : ""}`}
-              onClick={() => setTab("public")}
+              onClick={() => {
+                const next = new URLSearchParams(searchParams);
+                next.set("tab", "public");
+                setSearchParams(next);
+              }}
             >
               Public Rooms
             </button>
             <button
               className={`join-lobby-screen__tab ${tab === "private" ? "active" : ""}`}
-              onClick={() => setTab("private")}
+              onClick={() => {
+                const next = new URLSearchParams(searchParams);
+                next.set("tab", "private");
+                setSearchParams(next);
+              }}
             >
               Private Rooms
             </button>
@@ -59,7 +69,15 @@ const JoinLobbyScreen: React.FC<JoinLobbyScreenProps> = ({
             <span className="join-lobby-screen__search-icon">&#x1F50D;</span>
             <input
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => {
+                const next = new URLSearchParams(searchParams);
+                if (e.target.value.trim()) {
+                  next.set("q", e.target.value);
+                } else {
+                  next.delete("q");
+                }
+                setSearchParams(next);
+              }}
               placeholder="SEARCH..."
             />
           </div>

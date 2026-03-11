@@ -7,8 +7,11 @@ import json
 import random
 import string
 from dataclasses import dataclass
+from pathlib import Path
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Depends, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
 from .config import FRONTEND_URL, SUPABASE_JWT_SECRET
@@ -16,6 +19,7 @@ from .auth import JWTBearer, verify_ws_token
 from .engine.game_engine import GameEngine
 
 app = FastAPI(title="Monopoly Server")
+FRONTEND_BUILD_DIR = Path(__file__).resolve().parents[1] / "frontend" / "build"
 
 origins = [o.strip() for o in FRONTEND_URL.split(",") if o.strip()]
 app.add_middleware(
@@ -328,3 +332,18 @@ async def websocket_endpoint(
             "player": player_name,
             "state": _serialize_state(room),
         })
+
+
+if FRONTEND_BUILD_DIR.exists():
+    static_dir = FRONTEND_BUILD_DIR / "static"
+    if static_dir.exists():
+        app.mount("/static", StaticFiles(directory=static_dir), name="frontend-static")
+
+    @app.get("/{full_path:path}")
+    async def serve_spa(full_path: str):
+        if full_path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="API route not found.")
+        candidate = FRONTEND_BUILD_DIR / full_path
+        if full_path and candidate.exists() and candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(FRONTEND_BUILD_DIR / "index.html")
