@@ -13,7 +13,8 @@ import GameBoard from "./components/GameBoard";
 import PlayerPanel from "./components/PlayerPanel";
 import PlayersBar from "./components/PlayersBar";
 import EventLog from "./components/EventLog";
-import { RoomInfo } from "./types/game";
+import Toast from "./components/Toast";
+import { RoomInfo, SavedGame } from "./types/game";
 import "./App.css";
 
 const API_BASE = process.env.REACT_APP_API_URL || "http://localhost:8000";
@@ -33,16 +34,84 @@ function setStoredRoomPassword(roomId: string, password: string) {
 function RoomPage({ displayName, token }: { displayName: string; token: string | null }) {
   const navigate = useNavigate();
   const { roomId } = useParams<{ roomId: string }>();
-  const roomPassword = roomId ? getStoredRoomPassword(roomId) : "";
-  const { gameState, events, connected, sendAction } = useGameSocket(
+  const [roomPassword, setRoomPassword] = useState(() =>
+    roomId ? getStoredRoomPassword(roomId) : ""
+  );
+  const [passwordInput, setPasswordInput] = useState("");
+  const [showSettings, setShowSettings] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const { getAccessToken } = useAuth();
+  const { gameState, events, connected, error, sendAction } = useGameSocket(
     roomId ?? null,
     displayName,
     token,
     roomPassword
   );
 
+  useEffect(() => {
+    if (error === "room_not_found") {
+      sessionStorage.setItem("toast", "Room no longer exists.");
+      navigate("/", { replace: true });
+    } else if (error === "auth_failed") {
+      sessionStorage.setItem("toast", "Session expired. Please sign in again.");
+      navigate("/auth/login", { replace: true });
+    } else if (error === "already_connected") {
+      sessionStorage.setItem("toast", "You are already connected to this room.");
+      navigate("/", { replace: true });
+    }
+  }, [error, navigate]);
+
   if (!roomId) {
     return <Navigate to="/" replace />;
+  }
+
+  if (error === "password_required") {
+    return (
+      <div className="error-screen">
+        <div className="error-card">
+          <h2>Private Room</h2>
+          <p>This room requires a password to join.</p>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (passwordInput.trim()) {
+                setStoredRoomPassword(roomId, passwordInput.trim());
+                setRoomPassword(passwordInput.trim());
+              }
+            }}
+          >
+            <input
+              className="error-card__input"
+              type="password"
+              value={passwordInput}
+              onChange={(e) => setPasswordInput(e.target.value)}
+              placeholder="Room password..."
+              autoFocus
+            />
+            <button type="submit" className="btn-primary" disabled={!passwordInput.trim()}>
+              Join Room
+            </button>
+          </form>
+          <button className="btn-secondary error-card__back" onClick={() => navigate("/", { replace: true })}>
+            Back to Menu
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (error === "connection_failed") {
+    return (
+      <div className="error-screen">
+        <div className="error-card">
+          <h2>Connection Failed</h2>
+          <p>Could not connect to the game room. It may have been closed.</p>
+          <button className="btn-primary" onClick={() => navigate("/", { replace: true })}>
+            Back to Menu
+          </button>
+        </div>
+      </div>
+    );
   }
 
   if (!gameState) {
@@ -58,16 +127,57 @@ function RoomPage({ displayName, token }: { displayName: string; token: string |
     return <Lobby gameState={gameState} playerName={displayName} sendAction={sendAction} />;
   }
 
+  const isHost = gameState.room?.host_name === displayName;
+
+  const handleSaveGame = async () => {
+    if (!roomId) return;
+    setSaving(true);
+    try {
+      const freshToken = await getAccessToken();
+      if (!freshToken) return;
+      const res = await fetch(`${API_BASE}/api/games/save`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${freshToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ room_id: roomId }),
+      });
+      if (res.ok) {
+        sessionStorage.setItem("toast", "Game saved successfully!");
+        navigate("/", { replace: true });
+      }
+    } catch { /* ignore */ }
+    setSaving(false);
+  };
+
   return (
     <div className="game-screen">
       <PlayersBar gameState={gameState} playerName={displayName} />
       <div className="game-main">
-        <GameBoard gameState={gameState} />
-        <div className="game-sidebar">
-          <PlayerPanel gameState={gameState} playerName={displayName} sendAction={sendAction} />
+        <div className="game-center">
+          <GameBoard gameState={gameState} />
           <EventLog events={events} />
         </div>
+        <div className="game-sidebar">
+          <PlayerPanel gameState={gameState} playerName={displayName} sendAction={sendAction} />
+          {isHost && (
+            <button className="btn-secondary settings-btn" onClick={() => setShowSettings(!showSettings)}>
+              Settings
+            </button>
+          )}
+        </div>
       </div>
+      {showSettings && isHost && (
+        <div className="settings-overlay" onClick={() => setShowSettings(false)}>
+          <div className="settings-panel" onClick={(e) => e.stopPropagation()}>
+            <h3 className="settings-panel__title">GAME SETTINGS</h3>
+            <button className="btn-primary" onClick={handleSaveGame} disabled={saving}>
+              {saving ? "Saving..." : "SAVE GAME"}
+            </button>
+            <button className="btn-secondary" onClick={() => setShowSettings(false)}>
+              CLOSE
+            </button>
+          </div>
+        </div>
+      )}
       {gameState.state === "gameover" && (
         <div className="gameover-overlay">
           <div className="gameover-card">
@@ -88,6 +198,7 @@ function GameApp() {
   const navigate = useNavigate();
   const { user, session, displayName, signOut, getAccessToken, loading } = useAuth();
   const [rooms, setRooms] = useState<RoomInfo[]>([]);
+  const [savedGames, setSavedGames] = useState<SavedGame[]>([]);
   const [error, setError] = useState("");
   const [creating, setCreating] = useState(false);
   const [joining, setJoining] = useState(false);
@@ -104,11 +215,26 @@ function GameApp() {
     }
   }, []);
 
+  const fetchSavedGames = useCallback(async () => {
+    try {
+      const freshToken = await getAccessToken();
+      if (!freshToken) return;
+      const res = await fetch(`${API_BASE}/api/games/saved`, {
+        headers: { Authorization: `Bearer ${freshToken}` },
+      });
+      const data = await res.json();
+      setSavedGames(data.saved_games ?? []);
+    } catch { /* ignore */ }
+  }, [getAccessToken]);
+
   useEffect(() => {
     if (user && location.pathname === "/play/join") {
       fetchRooms();
     }
-  }, [user, location.pathname, fetchRooms]);
+    if (user && location.pathname === "/play/host") {
+      fetchSavedGames();
+    }
+  }, [user, location.pathname, fetchRooms, fetchSavedGames]);
 
   if (loading) {
     return (
@@ -200,13 +326,55 @@ function GameApp() {
     setJoining(false);
   };
 
+  const handleLoadGame = async (savedGameId: string) => {
+    setCreating(true);
+    setError("");
+    try {
+      const freshToken = await getAccessToken();
+      if (!freshToken) {
+        setError("Session expired. Please sign in again.");
+        setCreating(false);
+        return;
+      }
+      const res = await fetch(`${API_BASE}/api/games/load`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${freshToken}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ saved_game_id: savedGameId }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.detail || "Could not load game.");
+        setCreating(false);
+        return;
+      }
+      navigate(`/rooms/${data.room.id}`, { replace: true });
+    } catch {
+      setError("Could not connect to server.");
+    }
+    setCreating(false);
+  };
+
+  const handleDeleteGame = async (savedGameId: string) => {
+    try {
+      const freshToken = await getAccessToken();
+      if (!freshToken) return;
+      await fetch(`${API_BASE}/api/games/${savedGameId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${freshToken}` },
+      });
+      setSavedGames((prev) => prev.filter((g) => g.id !== savedGameId));
+    } catch { /* ignore */ }
+  };
+
   return (
     <Routes>
       <Route path="/auth/*" element={<Navigate to="/" replace />} />
       <Route
         path="/"
         element={
-          <MainMenu
+          <>
+            <Toast />
+            <MainMenu
             displayName={displayName}
             onStartGame={() => {
               setError("");
@@ -217,6 +385,7 @@ function GameApp() {
               navigate("/auth/login", { replace: true });
             }}
           />
+          </>
         }
       />
       <Route
@@ -240,9 +409,12 @@ function GameApp() {
         element={
           <NewLobbyScreen
             onCreateLobby={handleCreateLobby}
+            onLoadGame={handleLoadGame}
+            onDeleteGame={handleDeleteGame}
             onBack={() => navigate("/play")}
             error={error}
             creating={creating}
+            savedGames={savedGames}
           />
         }
       />

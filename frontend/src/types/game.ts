@@ -5,8 +5,19 @@ export interface PlayerState {
   position: number;
   in_jail_turns: number;
   doubles_rolled: number;
+  character_id: string | null;
+  ready: boolean;
   owned_company_names: string[];
   color_counts: Record<string, number>;
+}
+
+export interface Character {
+  id: string;
+  name: string;
+  era: string;
+  avatar_url: string;
+  trivia: string;
+  display_order: number;
 }
 
 export interface CompanyCell {
@@ -78,6 +89,30 @@ export interface GameState {
   pending_company: string | null;
   auction: AuctionState | null;
   room?: RoomInfo;
+  characters?: Character[];
+  available_characters?: string[];
+}
+
+export interface SavedGame {
+  id: string;
+  host_user_id: string;
+  name: string;
+  game_state: any;
+  room_settings: any;
+  turn_count: number;
+  player_count: number;
+  created_at: string;
+  updated_at: string;
+  saved_game_players?: SavedGamePlayer[];
+}
+
+export interface SavedGamePlayer {
+  id: string;
+  saved_game_id: string;
+  user_id: string | null;
+  player_name: string;
+  character_id: string | null;
+  balance: number;
 }
 
 export interface GameEvent {

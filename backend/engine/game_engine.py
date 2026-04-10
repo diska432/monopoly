@@ -26,8 +26,8 @@ class GameEngine:
         self._pending_player: str | None = None
         self._pending_company: str | None = None
         self._pending_was_double: bool = False
-        # Auction state
-        self._auction: dict | None = None  # {company, price, bidder_idx, participants, highest_bidder}
+        self._auction: dict | None = None
+        self.characters: list[dict] = []
 
     # ---- Serialization ----
     def get_full_state(self) -> dict:
@@ -51,6 +51,8 @@ class GameEngine:
                 "highest_bidder": a["highest_bidder"],
                 "participants": a["participants"],
             }
+        selected_ids = {p.character_id for p in self.players if p.character_id}
+        available = [c["id"] for c in self.characters if c["id"] not in selected_ids]
         return {
             "lobby_id": self.lobby_id,
             "state": self.state,
@@ -62,7 +64,89 @@ class GameEngine:
             "pending_player": self._pending_player,
             "pending_company": self._pending_company,
             "auction": auction_data,
+            "characters": self.characters,
+            "available_characters": available,
         }
+
+    def to_save_dict(self) -> dict:
+        """Full serialization for persisting a game snapshot (includes internal state)."""
+        board_data = []
+        for cell in self.board:
+            if isinstance(cell, Company):
+                d = cell.to_dict()
+                board_data.append(d)
+            elif isinstance(cell, Tax):
+                board_data.append({"name": cell.name, "board_index": cell.board_index, "type": "tax", "amount": cell.amount})
+            elif isinstance(cell, Chance):
+                board_data.append({"name": cell.name, "board_index": cell.board_index, "type": "chance"})
+            elif isinstance(cell, SpecialCell):
+                board_data.append({"name": cell.name, "board_index": cell.board_index, "type": cell.type})
+
+        players_data = []
+        for p in self.players:
+            pd = p.to_dict()
+            pd["upgrade_used_this_turn"] = dict(p.upgrade_used_this_turn)
+            players_data.append(pd)
+
+        auction_data = None
+        if self._auction:
+            auction_data = dict(self._auction)
+
+        return {
+            "lobby_id": self.lobby_id,
+            "state": self.state,
+            "current_player_index": self.current_player_index,
+            "players": players_data,
+            "board": board_data,
+            "pending_action": self._pending_action,
+            "pending_player": self._pending_player,
+            "pending_company": self._pending_company,
+            "pending_was_double": self._pending_was_double,
+            "auction": auction_data,
+        }
+
+    @classmethod
+    def from_save_dict(cls, data: dict) -> "GameEngine":
+        """Reconstruct a GameEngine from a save dict."""
+        engine = cls(data.get("lobby_id", "restored"))
+        engine.state = data.get("state", "lobby")
+        engine.current_player_index = data.get("current_player_index", 0)
+        engine._pending_action = data.get("pending_action")
+        engine._pending_player = data.get("pending_player")
+        engine._pending_company = data.get("pending_company")
+        engine._pending_was_double = data.get("pending_was_double", False)
+        engine._auction = data.get("auction")
+
+        for pd in data.get("players", []):
+            p = Player(
+                name=pd["name"],
+                color=pd["color"],
+                balance=pd.get("balance", 1500),
+                position=pd.get("position", 0),
+                in_jail_turns=pd.get("in_jail_turns", 0),
+                doubles_rolled=pd.get("doubles_rolled", 0),
+                character_id=pd.get("character_id"),
+                ready=pd.get("ready", False),
+                owned_company_names=list(pd.get("owned_company_names", [])),
+            )
+            p.color_counts = dict(pd.get("color_counts", p.color_counts))
+            p.upgrade_used_this_turn = dict(pd.get("upgrade_used_this_turn", p.upgrade_used_this_turn))
+            engine.players.append(p)
+
+        saved_board = data.get("board", [])
+        if saved_board:
+            for saved_cell in saved_board:
+                idx = saved_cell.get("board_index")
+                if idx is None or idx >= len(engine.board):
+                    continue
+                cell = engine.board[idx]
+                if isinstance(cell, Company) and "price" in saved_cell:
+                    cell.owner_id = saved_cell.get("owner_id")
+                    cell.count_stars = saved_cell.get("count_stars", 0)
+                    cell.mortgage_count = saved_cell.get("mortgage_count", -1)
+                    cell.rent = saved_cell.get("rent", cell.initial_rent)
+
+        return engine
 
     # ---- Helpers ----
     def _get_player(self, name: str) -> Player | None:
@@ -110,6 +194,12 @@ class GameEngine:
         data = data or {}
         if action == "add_player":
             return self._add_player(data.get("name", ""), data.get("color"))
+        if action == "select_character":
+            return self._select_character(player_name, data.get("character_id", ""))
+        if action == "ready_up":
+            return self._ready_up(player_name)
+        if action == "unready":
+            return self._unready(player_name)
         if action == "start_game":
             return self._start_game()
         if self.state != "active":
@@ -174,11 +264,54 @@ class GameEngine:
         self.players.append(Player(name=name, color=c))
         return [{"type": "player_joined", "player": name, "color": c}]
 
+    def _select_character(self, player_name: str, character_id: str) -> list[dict]:
+        if self.state != "lobby":
+            return [{"type": "error", "message": "Can only select characters in lobby."}]
+        player = self._get_player(player_name)
+        if not player:
+            return [{"type": "error", "message": "Player not found."}]
+        if not character_id:
+            return [{"type": "error", "message": "Character ID is required."}]
+        valid_ids = {c["id"] for c in self.characters}
+        if valid_ids and character_id not in valid_ids:
+            return [{"type": "error", "message": "Invalid character."}]
+        for p in self.players:
+            if p.character_id == character_id and p.name != player_name:
+                return [{"type": "error", "message": "Character already taken."}]
+        player.character_id = character_id
+        player.ready = False
+        return [{"type": "character_selected", "player": player_name, "character_id": character_id}]
+
+    def _ready_up(self, player_name: str) -> list[dict]:
+        if self.state != "lobby":
+            return [{"type": "error", "message": "Can only ready up in lobby."}]
+        player = self._get_player(player_name)
+        if not player:
+            return [{"type": "error", "message": "Player not found."}]
+        if not player.character_id:
+            return [{"type": "error", "message": "Select a character first."}]
+        player.ready = True
+        return [{"type": "player_ready", "player": player_name}]
+
+    def _unready(self, player_name: str) -> list[dict]:
+        if self.state != "lobby":
+            return [{"type": "error", "message": "Can only unready in lobby."}]
+        player = self._get_player(player_name)
+        if not player:
+            return [{"type": "error", "message": "Player not found."}]
+        player.ready = False
+        return [{"type": "player_unready", "player": player_name}]
+
     def _start_game(self) -> list[dict]:
         if self.state == "active":
             return [{"type": "error", "message": "Game already active."}]
         if len(self.players) < 2:
             return [{"type": "error", "message": "Need at least 2 players."}]
+        for p in self.players:
+            if not p.character_id:
+                return [{"type": "error", "message": f"{p.name} has not selected a character."}]
+            if not p.ready:
+                return [{"type": "error", "message": f"{p.name} is not ready."}]
         self.state = "active"
         self.current_player_index = 0
         return [{"type": "game_started", "current_player": self._current_player().name}]

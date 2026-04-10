@@ -3,6 +3,30 @@ import { GameState, GameEvent, ServerMessage } from "../types/game";
 
 const WS_BASE = process.env.REACT_APP_WS_URL || "ws://localhost:8000";
 
+export type WsErrorKind =
+  | "room_not_found"
+  | "password_required"
+  | "auth_failed"
+  | "already_connected"
+  | "connection_failed";
+
+function closeCodeToError(code: number, reason: string): WsErrorKind | null {
+  switch (code) {
+    case 4001:
+      return "auth_failed";
+    case 4003:
+      return "already_connected";
+    case 4004:
+      return "room_not_found";
+    case 4005:
+      return reason?.toLowerCase().includes("password")
+        ? "password_required"
+        : "connection_failed";
+    default:
+      return code >= 4000 ? "connection_failed" : null;
+  }
+}
+
 export function useGameSocket(
   lobbyId: string | null,
   playerName: string | null,
@@ -12,10 +36,13 @@ export function useGameSocket(
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [events, setEvents] = useState<GameEvent[]>([]);
   const [connected, setConnected] = useState(false);
+  const [error, setError] = useState<WsErrorKind | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
     if (!lobbyId || !playerName) return;
+
+    setError(null);
 
     const params = new URLSearchParams();
     if (token) params.set("token", token);
@@ -24,7 +51,10 @@ export function useGameSocket(
     const ws = new WebSocket(`${WS_BASE}/ws/${lobbyId}/${playerName}${query ? `?${query}` : ""}`);
     wsRef.current = ws;
 
-    ws.onopen = () => setConnected(true);
+    ws.onopen = () => {
+      setConnected(true);
+      setError(null);
+    };
 
     ws.onmessage = (ev) => {
       const msg: ServerMessage = JSON.parse(ev.data);
@@ -35,8 +65,15 @@ export function useGameSocket(
       }
     };
 
-    ws.onclose = () => setConnected(false);
-    ws.onerror = () => setConnected(false);
+    ws.onclose = (ev) => {
+      setConnected(false);
+      const kind = closeCodeToError(ev.code, ev.reason);
+      if (kind) setError(kind);
+    };
+
+    ws.onerror = () => {
+      setConnected(false);
+    };
 
     return () => {
       ws.close();
@@ -53,5 +90,5 @@ export function useGameSocket(
     []
   );
 
-  return { gameState, events, connected, sendAction };
+  return { gameState, events, connected, error, sendAction };
 }

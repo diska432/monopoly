@@ -14,6 +14,8 @@ class Player:
     position: int = 0
     in_jail_turns: int = 0      # 0 = free, >0 = turns remaining in jail
     doubles_rolled: int = 0
+    character_id: str | None = None
+    ready: bool = False
     owned_company_names: list[str] = field(default_factory=list)
 
     color_counts: dict[str, int] = field(default_factory=lambda: {
@@ -35,6 +37,8 @@ class Player:
             "position": self.position,
             "in_jail_turns": self.in_jail_turns,
             "doubles_rolled": self.doubles_rolled,
+            "character_id": self.character_id,
+            "ready": self.ready,
             "owned_company_names": list(self.owned_company_names),
             "color_counts": dict(self.color_counts),
         }

@@ -17,6 +17,7 @@ from pydantic import BaseModel, Field
 from .config import FRONTEND_URL, SUPABASE_JWT_SECRET
 from .auth import JWTBearer, verify_ws_token
 from .engine.game_engine import GameEngine
+from . import db
 
 app = FastAPI(title="Monopoly Server")
 FRONTEND_BUILD_DIR = Path(__file__).resolve().parents[1] / "frontend" / "build"
@@ -110,6 +111,7 @@ class ConnectionManager:
             timer=timer,
             game=GameEngine(lobby_id),
         )
+        room.game.characters = db.fetch_characters()
         self.rooms[lobby_id] = room
         self.connections[lobby_id] = {}
         return room
@@ -253,6 +255,107 @@ async def lobby_exists(lobby_id: str):
     if room:
         return {"exists": True, "state": room.game.state, "players": [p.name for p in room.game.players]}
     return {"exists": False}
+
+
+# ---- Save / Load Game Endpoints ----
+
+class SaveGameRequest(BaseModel):
+    room_id: str
+
+
+class LoadGameRequest(BaseModel):
+    saved_game_id: str
+
+
+@app.post("/api/games/save")
+async def save_game_endpoint(body: SaveGameRequest, payload: dict = Depends(jwt_scheme)):
+    user_id = payload.get("sub", "")
+    host_name = _extract_display_name(payload)
+    room = manager.get_room(body.room_id)
+    if not room:
+        raise HTTPException(status_code=404, detail="Room not found.")
+    if room.host_name != host_name:
+        raise HTTPException(status_code=403, detail="Only the host can save the game.")
+    if room.game.state not in ("active", "lobby"):
+        raise HTTPException(status_code=400, detail="Cannot save a finished game.")
+
+    game_state = room.game.to_save_dict()
+    room_settings = {
+        "max_players": room.max_players,
+        "casino": room.casino,
+        "teams": room.teams,
+        "timer": room.timer,
+        "visibility": room.visibility,
+    }
+    players = [
+        {
+            "player_name": p.name,
+            "character_id": p.character_id,
+            "balance": p.balance,
+            "user_id": None,
+        }
+        for p in room.game.players
+    ]
+    turn_count = game_state.get("current_player_index", 0)
+
+    saved = db.save_game(
+        host_user_id=user_id,
+        name=room.name,
+        game_state=game_state,
+        room_settings=room_settings,
+        turn_count=turn_count,
+        players=players,
+    )
+    if not saved:
+        raise HTTPException(status_code=500, detail="Could not save game. Check database configuration.")
+    return {"saved_game": saved}
+
+
+@app.get("/api/games/saved")
+async def list_saved_games_endpoint(payload: dict = Depends(jwt_scheme)):
+    user_id = payload.get("sub", "")
+    games = db.list_saved_games(user_id)
+    return {"saved_games": games}
+
+
+@app.post("/api/games/load")
+async def load_game_endpoint(body: LoadGameRequest, payload: dict = Depends(jwt_scheme)):
+    user_id = payload.get("sub", "")
+    host_name = _extract_display_name(payload)
+    saved = db.load_saved_game(body.saved_game_id)
+    if not saved:
+        raise HTTPException(status_code=404, detail="Saved game not found.")
+    if saved.get("host_user_id") != user_id:
+        raise HTTPException(status_code=403, detail="You are not the host of this saved game.")
+
+    restored_engine = GameEngine.from_save_dict(saved["game_state"])
+    restored_engine.characters = db.fetch_characters()
+    restored_engine.state = "lobby"
+    for p in restored_engine.players:
+        p.ready = False
+
+    room_settings = saved.get("room_settings", {})
+    room = manager.create_lobby(
+        host_name=host_name,
+        max_players=room_settings.get("max_players", 6),
+        casino=room_settings.get("casino", False),
+        teams=room_settings.get("teams", False),
+        timer=room_settings.get("timer", False),
+        is_private=room_settings.get("visibility") == "private",
+    )
+    room.game = restored_engine
+    restored_engine.lobby_id = room.lobby_id
+
+    return {"room": room.to_summary()}
+
+
+@app.delete("/api/games/{saved_game_id}")
+async def delete_saved_game_endpoint(saved_game_id: str, payload: dict = Depends(jwt_scheme)):
+    user_id = payload.get("sub", "")
+    success = db.delete_saved_game(saved_game_id, user_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Saved game not found or not your game.")
+    return {"deleted": True}
 
 
 # ---- WebSocket with JWT auth ----

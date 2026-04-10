@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <radialGradient id="ember-bg" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#F4A261"/>
+      <stop offset="100%" stop-color="#E76F51"/>
+    </radialGradient>
+    <radialGradient id="ember-inner" cx="50%" cy="45%" r="45%">
+      <stop offset="0%" stop-color="#E8955A"/>
+      <stop offset="100%" stop-color="#C45A3C"/>
+    </radialGradient>
+  </defs>
+  <!-- Outer border ring -->
+  <circle cx="100" cy="100" r="96" fill="#C45A3C" stroke="#8B3A2A" stroke-width="3"/>
+  <!-- Main background -->
+  <circle cx="100" cy="100" r="88" fill="url(#ember-bg)"/>
+  <!-- Stone age rough edge accents -->
+  <circle cx="100" cy="100" r="80" fill="none" stroke="#FFF" stroke-width="2" opacity="0.15" stroke-dasharray="3 6 8 6"/>
+  <!-- Primitive marks / cave-art inspired -->
+  <circle cx="55" cy="50" r="4" fill="#FFF" opacity="0.15"/>
+  <circle cx="145" cy="50" r="4" fill="#FFF" opacity="0.15"/>
+  <circle cx="50" cy="65" r="2.5" fill="#FFF" opacity="0.12"/>
+  <circle cx="150" cy="65" r="2.5" fill="#FFF" opacity="0.12"/>
+  <line x1="55" y1="145" x2="65" y2="150" stroke="#FFF" stroke-width="2" opacity="0.15" stroke-linecap="round"/>
+  <line x1="145" y1="145" x2="135" y2="150" stroke="#FFF" stroke-width="2" opacity="0.15" stroke-linecap="round"/>
+  <!-- Inner circle -->
+  <circle cx="100" cy="100" r="70" fill="url(#ember-inner)" opacity="0.4"/>
+  <!-- Character initial -->
+  <text x="100" y="118" font-family="Georgia, serif" font-size="90" font-weight="bold" fill="white" text-anchor="middle" opacity="0.95">E</text>
+  <!-- Flame accent bottom -->
+  <path d="M90 150 Q95 140 100 150 Q105 140 110 150" fill="none" stroke="#FFF" stroke-width="1.5" opacity="0.3"/>
+</svg>

@@ -55,7 +55,7 @@ const PlayerPanel: React.FC<Props> = ({ gameState, playerName, sendAction }) => 
         <div className="turn-actions">
           {iAmAuctionBidder ? (
             <div className="auction-actions">
-              <p className="turn-indicator">Auction: {auction.company}</p>
+              <p className="panel-turn-label">Auction: {auction.company}</p>
               <p className="auction-price">Current bid: {auction.current_price} ₸</p>
               {auction.highest_bidder && (
                 <p className="auction-leader">Leading: {auction.highest_bidder}</p>
@@ -74,13 +74,13 @@ const PlayerPanel: React.FC<Props> = ({ gameState, playerName, sendAction }) => 
             </div>
           ) : auction.participants.includes(playerName) ? (
             <div className="auction-actions">
-              <p className="turn-indicator">Auction: {auction.company}</p>
+              <p className="panel-turn-label">Auction: {auction.company}</p>
               <p>Waiting for {auction.current_bidder} to bid...</p>
               <p className="auction-price">Current bid: {auction.current_price} ₸</p>
             </div>
           ) : (
             <div className="auction-actions">
-              <p className="turn-indicator">Auction: {auction.company}</p>
+              <p className="panel-turn-label">Auction: {auction.company}</p>
               <p className="text-muted">You are not in this auction.</p>
             </div>
           )}
@@ -90,7 +90,7 @@ const PlayerPanel: React.FC<Props> = ({ gameState, playerName, sendAction }) => 
       {/* Buy decision — only shown to the pending player */}
       {pending === "buy_decision" && iAmPendingPlayer && (
         <div className="turn-actions">
-          <p className="turn-indicator">Buy {gameState.pending_company}?</p>
+          <p className="panel-turn-label">Buy {gameState.pending_company}?</p>
           <div className="buy-actions">
             <button className="btn-primary" onClick={() => sendAction("buy_property", { accept: true })}>
               Buy
@@ -105,7 +105,7 @@ const PlayerPanel: React.FC<Props> = ({ gameState, playerName, sendAction }) => 
       {/* Casino decision — only shown to the pending player */}
       {pending === "casino_decision" && iAmPendingPlayer && (
         <div className="turn-actions">
-          <p className="turn-indicator">Casino! (100₸ to play, win 600₸)</p>
+          <p className="panel-turn-label">Casino! (100₸ to play, win 600₸)</p>
           <div className="casino-actions">
             {[1, 2, 3, 4, 5, 6].map((n) => (
               <button key={n} className="btn-dice" onClick={() => sendAction("casino_play", { guess: n })}>
@@ -122,7 +122,7 @@ const PlayerPanel: React.FC<Props> = ({ gameState, playerName, sendAction }) => 
       {/* Normal turn actions — roll dice, etc. */}
       {isMyTurn && !pending && (
         <div className="turn-actions">
-          <p className="turn-indicator">Your Turn!</p>
+          <p className="panel-turn-label">Your Turn!</p>
           {me.in_jail_turns > 0 ? (
             <div className="jail-actions">
               <button className="btn-primary" onClick={() => sendAction("jail_pay")}>
