@@ -98,18 +98,20 @@ const Lobby: React.FC<LobbyProps> = ({ gameState, playerName, sendAction }) => {
               const taken = !availableIds.has(c.id) && c.id !== myCharId;
               const selected = c.id === myCharId;
               return (
-                <button
-                  key={c.id}
-                  className={`char-select__grid-cell ${selected ? "char-select__grid-cell--selected" : ""} ${taken ? "char-select__grid-cell--taken" : ""}`}
-                  onClick={() => !taken && handleSelectCharacter(c.id)}
-                  onMouseEnter={() => setHoveredChar(c.id)}
-                  onMouseLeave={() => setHoveredChar(null)}
-                  disabled={taken}
-                >
-                  <img src={c.avatar_url} alt={c.name} className="char-select__grid-img" />
-                  {taken && <div className="char-select__grid-taken">TAKEN</div>}
-                  {selected && <div className="char-select__grid-check">&#10003;</div>}
-                </button>
+                <div key={c.id} className="char-select__grid-wrapper">
+                  <button
+                    className={`char-select__grid-cell ${selected ? "char-select__grid-cell--selected" : ""} ${taken ? "char-select__grid-cell--taken" : ""}`}
+                    onClick={() => !taken && handleSelectCharacter(c.id)}
+                    onMouseEnter={() => setHoveredChar(c.id)}
+                    onMouseLeave={() => setHoveredChar(null)}
+                    disabled={taken}
+                  >
+                    <img src={c.avatar_url} alt={c.name} className="char-select__grid-img" />
+                    {taken && <div className="char-select__grid-taken">TAKEN</div>}
+                    {selected && <div className="char-select__grid-check">&#10003;</div>}
+                  </button>
+                  <span className="char-select__grid-name">{c.name}</span>
+                </div>
               );
             })}
           </div>
@@ -145,10 +147,13 @@ const Lobby: React.FC<LobbyProps> = ({ gameState, playerName, sendAction }) => {
             {displayedChar ? (
               <>
                 <div className="char-select__info-avatar">
-                  <img src={displayedChar.avatar_url} alt={displayedChar.name} />
+                  <img src={displayedChar.full_art_url || displayedChar.avatar_url} alt={displayedChar.name} />
                 </div>
+                <p className="char-select__info-label">NAME</p>
                 <h3 className="char-select__info-name">{displayedChar.name}</h3>
+                <p className="char-select__info-label">MOTHERTIME</p>
                 <p className="char-select__info-era">{displayedChar.era}</p>
+                <p className="char-select__info-label">TRIVIA</p>
                 <p className="char-select__info-trivia">{displayedChar.trivia}</p>
               </>
             ) : (

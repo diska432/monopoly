@@ -14,6 +14,7 @@ import PlayerPanel from "./components/PlayerPanel";
 import PlayersBar from "./components/PlayersBar";
 import EventLog from "./components/EventLog";
 import Toast from "./components/Toast";
+import LoadingScreen from "./components/LoadingScreen";
 import { RoomInfo, SavedGame } from "./types/game";
 import "./App.css";
 
@@ -115,12 +116,7 @@ function RoomPage({ displayName, token }: { displayName: string; token: string |
   }
 
   if (!gameState) {
-    return (
-      <div className="loading-screen">
-        <div className="spinner" />
-        <p>{connected ? "Loading game..." : "Connecting..."}</p>
-      </div>
-    );
+    return <LoadingScreen message={connected ? "Loading game..." : "Connecting..."} />;
   }
 
   if (gameState.state === "lobby") {
@@ -150,20 +146,20 @@ function RoomPage({ displayName, token }: { displayName: string; token: string |
 
   return (
     <div className="game-screen">
-      <PlayersBar gameState={gameState} playerName={displayName} />
-      <div className="game-main">
-        <div className="game-center">
-          <GameBoard gameState={gameState} />
-          <EventLog events={events} />
-        </div>
-        <div className="game-sidebar">
-          <PlayerPanel gameState={gameState} playerName={displayName} sendAction={sendAction} />
-          {isHost && (
-            <button className="btn-secondary settings-btn" onClick={() => setShowSettings(!showSettings)}>
-              Settings
-            </button>
-          )}
-        </div>
+      <div className="game-left">
+        <PlayersBar gameState={gameState} playerName={displayName} />
+        <EventLog events={events} />
+      </div>
+      <div className="game-board-area">
+        <GameBoard gameState={gameState} />
+      </div>
+      <div className="game-sidebar">
+        <PlayerPanel gameState={gameState} playerName={displayName} sendAction={sendAction} />
+        {isHost && (
+          <button className="btn-secondary settings-btn" onClick={() => setShowSettings(!showSettings)}>
+            Settings
+          </button>
+        )}
       </div>
       {showSettings && isHost && (
         <div className="settings-overlay" onClick={() => setShowSettings(false)}>
@@ -237,12 +233,7 @@ function GameApp() {
   }, [user, location.pathname, fetchRooms, fetchSavedGames]);
 
   if (loading) {
-    return (
-      <div className="loading-screen">
-        <div className="spinner" />
-        <p>Loading...</p>
-      </div>
-    );
+    return <LoadingScreen />;
   }
 
   if (!user) {

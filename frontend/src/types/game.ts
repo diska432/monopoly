@@ -16,6 +16,7 @@ export interface Character {
   name: string;
   era: string;
   avatar_url: string;
+  full_art_url?: string;
   trivia: string;
   display_order: number;
 }

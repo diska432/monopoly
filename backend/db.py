@@ -111,10 +111,10 @@ def delete_saved_game(saved_game_id: str, host_user_id: str) -> bool:
 
 def _default_characters() -> list[dict[str, Any]]:
     return [
-        {"id": "rukia", "name": "Rukia", "era": "Feudal Japan", "avatar_url": "/assets/characters/rukia.svg", "trivia": "A wandering ronin from the Edo period.", "display_order": 1},
-        {"id": "atlas", "name": "Atlas", "era": "Ancient Greece", "avatar_url": "/assets/characters/atlas.svg", "trivia": "A titan who holds a monopoly instead of the sky.", "display_order": 2},
-        {"id": "ember", "name": "Ember", "era": "Stone Age", "avatar_url": "/assets/characters/ember.svg", "trivia": "The first to discover fire and charge for warmth.", "display_order": 3},
-        {"id": "nova", "name": "Nova", "era": "Cyberpunk 2077", "avatar_url": "/assets/characters/nova.svg", "trivia": "A netrunner hacking her way to financial dominance.", "display_order": 4},
-        {"id": "khan", "name": "Khan", "era": "Medieval Central Asia", "avatar_url": "/assets/characters/khan.svg", "trivia": "A steppe conqueror with an eye for property.", "display_order": 5},
-        {"id": "raven", "name": "Raven", "era": "Victorian Era", "avatar_url": "/assets/characters/raven.svg", "trivia": "A mysterious aristocrat from fog-shrouded London.", "display_order": 6},
+        {"id": "edmund", "name": "Edmund", "era": "Medieval Britain", "avatar_url": "/assets/characters/edmund.png", "full_art_url": "/assets/characters/full/edmund-full.png", "trivia": "A cunning gentleman inventor who rose from the London fog to build an empire of steam and steel.", "display_order": 1},
+        {"id": "sareena", "name": "Sareena", "era": "Central Asia", "avatar_url": "/assets/characters/sareena.png", "full_art_url": "/assets/characters/full/sareena-full.png", "trivia": "A fearless warrior-queen of the Silk Road, commanding trade routes from the steppes to the mountains.", "display_order": 2},
+        {"id": "mei-lynn", "name": "Mei Lynn", "era": "Cyberpunk Japan", "avatar_url": "/assets/characters/mei-lynn.png", "full_art_url": "/assets/characters/full/mei-lynn-full.png", "trivia": "A netrunner and corporate saboteur who plays the market from the neon-lit streets of Neo-Tokyo.", "display_order": 3},
+        {"id": "oleksiy", "name": "Oleksiy", "era": "Cossack Ukraine", "avatar_url": "/assets/characters/oleksiy.png", "full_art_url": "/assets/characters/full/oleksiy-full.png", "trivia": "A resourceful Cossack engineer who turns every challenge into an opportunity for profit.", "display_order": 4},
+        {"id": "decimus", "name": "Decimus", "era": "Ancient Rome", "avatar_url": "/assets/characters/decimus.png", "full_art_url": "/assets/characters/full/decimus-full.png", "trivia": "A battle-hardened centurion who conquered lands and then bought them at auction.", "display_order": 5},
+        {"id": "stacy", "name": "Stacy", "era": "80s America", "avatar_url": "/assets/characters/stacy.png", "full_art_url": "/assets/characters/full/stacy-full.png", "trivia": "A high-energy aerobics instructor who flipped properties between workout sessions.", "display_order": 6},
     ]

@@ -368,13 +368,14 @@ async def websocket_endpoint(
     token: str = Query(default=""),
     room_password: str = Query(default=""),
 ):
+    await websocket.accept()
+
     if SUPABASE_JWT_SECRET:
         payload = await verify_ws_token(websocket, token)
         if not payload:
             await websocket.close(code=4001, reason="Authentication failed")
             return
         user_id = payload.get("sub", "")
-        existing_conn_name = None
         conns = manager.connections.get(lobby_id, {})
         game = manager.get_game(lobby_id)
         if game:
@@ -398,8 +399,6 @@ async def websocket_endpoint(
         if not can_join:
             await websocket.close(code=4005, reason=reason or "Cannot join room")
             return
-
-    await websocket.accept()
 
     if payload:
         websocket._user_id = payload.get("sub", "")

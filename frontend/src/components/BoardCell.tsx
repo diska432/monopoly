@@ -11,8 +11,9 @@ interface Props {
 }
 
 const COLOR_MAP: Record<string, string> = {
-  brown: "#8B4513", pink: "#FF69B4", purple: "#9370DB", orange: "#FF8C00",
-  red: "#DC143C", yellow: "#FFD700", green: "#228B22", blue: "#1E90FF",
+  brown: "#765A51", pink: "#FF008C", purple: "#CE72D5", orange: "#D5B772",
+  red: "#DC143C", yellow: "#D5B772", green: "#89D572", blue: "#7298D5",
+  cyan: "#72CED5",
 };
 
 const PLAYER_COLORS: Record<string, string> = {
